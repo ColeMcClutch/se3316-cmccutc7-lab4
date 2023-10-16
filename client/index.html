@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>SE 3316 Lab 1</title>
+<meta name="se3316-lab3-cmccutc7" content="width=device-width, initial-scale=1.0">
+<meta name="Cole McCutcheon" content="">
+<link rel="stylesheet"  type="text/css" href="style.css">
+</head>
+
+
+<body>
+<!-- Place your content here -->
+
+<div class = "title">
+<!--Title-->
+<h1>Cole's List of Heroes</h1>
+</div>
+<!--Searching Methods-->
+<div class = "searchMethods">
+
+<!--Searching-->
+<!--Name Searcher-->
+<input type="text" id="searchBar" name="searcher" placeholder="Search By: ">
+<ul id="results1"></ul>
+
+<!--Dropdown for searching-->
+<label for="searchDropdown">Topic:     |</label>
+    <select id="searchDropdown">
+        <option value="name">Name</option>
+        <option value="race">Race</option>
+        <option value="publisher">Publisher</option>
+        <option value="Power">Power</option>
+    </select>
+
+<!--Currency Searcher-->
+<input type="text" id="sortBar" name="sorter" placeholder="Sort By: ">
+<ul id="results2"></ul>
+
+<!--Drop down for sort-->
+<label for="sortDropdown">Topic:      |</label>
+    <select id="sortDropdown">
+        <option value="name">Name</option>
+        <option value="race">Race</option>
+        <option value="publisher">Publisher</option>
+        <option value="power">Power</option>
+    </select>
+
+<!--create new list button-->
+<button type = "button" id = "creator">Create New List</button>
+
+
+</div>
+
+<!--Radio buttons-->
+<div class = "clicker">
+    <h2>Show:</h2>
+    <form>
+        <input type="radio" id="hero" name="heroView" value="heros">
+        <label for="hero">Heros</label><br>
+    
+        <input type="radio" id="lists" name="listView" value="lists">
+        <label for="lists">Lists</label><br> 
+    
+    </form>
+    </div>
+
+<div id = "viewer"></div>
+
+<!-- Embedded JavaScript go here -->
+<script src= "script.js" defer></script>
+</body>
+</html>
