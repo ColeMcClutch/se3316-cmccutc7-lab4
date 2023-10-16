@@ -1,0 +1,54 @@
+/*Style changes for HTML*/
+
+/*Background for items*/
+.searchMethods{
+background-color: cyan;
+padding: 30px;
+right: 50px;
+display: flex;
+border: 1px solid;
+}
+
+/*Title edits*/
+.title{
+    font-size: 48px;
+    color: blue;
+    font-style: italic;
+    font-family: Georgia, 'Times New Roman', Times, serif;
+    background-color: white;
+}
+
+body{
+    background-color: gray;
+}
+
+
+.searchBar{
+    background-color: white;
+    display: flex;
+}
+
+.sortBar{
+    background-color: white;
+    right: 40px;
+    display: flex;
+}
+
+#viewer{
+    font-size: 16px;
+    background-color: gray;
+    height: 1000px;
+    border: 1px solid;
+  }
+
+.clicker{
+    display: inline-flex;
+    background-color: cyan;
+    border: 1px solid;
+}  
+
+#creator{
+    background-color: blue;
+    color: white;
+    border: 1px solid;
+}
