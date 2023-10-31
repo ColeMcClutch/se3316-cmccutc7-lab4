@@ -8,14 +8,45 @@ const create = document.getElementById('creator')
 const heroView = document.getElementById('hero')
 const listView = document.getElementById('lists')
 const view = document.getElementById('viewer')
+const searchSubmit = document.getElementById('searchSubmit')
+const sortSubmit = document.getElementById('sortSubmit')
+const viewer = document.getElementById('viewer')
 
 
 //Button commands
 //search
-if (searchFilter=="name"){}
-else if (searchFilter="race"){}
-else if (searchFilter="publisher"){}
-else if (searchFilter="Power"){}
+searchSubmit.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const pattern = search.value;
+    const field = searchFilter.value;
+
+    // Send a request to the backend to search superheroes
+    fetch(`/api/superheroes_info/search?pattern=${pattern}&field=${field}`)
+        .then(response => response.json())
+        .then(data => {
+            // Clear previous search results
+            viewer.innerHTML = '';
+
+            // Display search results
+            if (data.length > 0) {
+                const resultContainer = document.createElement('div');
+                resultContainer.innerHTML = `<h2>Search Results:</h2>`;
+
+                data.forEach(superheroId => {
+                    // Create a link to view superhero details
+                    const link = `<a href="/superhero-details.html?id=${superheroId}">View Details</a>`;
+                    resultContainer.innerHTML += `Superhero ID: ${superheroId} ${link}<br>`;
+                });
+
+                viewer.appendChild(resultContainer);
+            } else {
+                viewer.innerHTML = 'No results found.';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+});
 
 
 //sort
