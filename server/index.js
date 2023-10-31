@@ -2,10 +2,25 @@ import express from 'express';
 //Imports superhero json files
 import superheroInfoData from './superhero_info.json';
 import superheroPowersData from './superhero_powers.json';
+const bodyParser = require('body-parser');
+const helmet = require('helmet');
+const rateLimit = require("express-rate-limit");
 
-
+//Express application
 const app = express();
 const port = 3000;
+
+// Set up middleware for security
+app.use(helmet()); // Helmet helps secure your Express apps by setting various HTTP headers
+app.use(bodyParser.json()); // Parse JSON request bodies
+
+// Implement rate limiting to prevent abuse
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+});
+app.use('/api/', apiLimiter);
+
 
 // Setting up front-end code
 app.use('/', express.static('static'));
@@ -85,10 +100,15 @@ app.get('/api/superheroes_info/search', (req, res) => {
 const listArray = {}
 
 
-//Create new lists
+//Create new lists with input validation
 app.post('/api/custom-lists', (req, res) => {
     const listName = req.body.name;
     const description = req.body.description;
+
+    // Validate input to prevent injection attacks and unwanted side effects
+    if (typeof listName !== 'string' || typeof description !== 'string') {
+        return res.status(400).json({ error: 'Invalid input data' });
+    }
     
     // Create a new custom list object with a name, description, and an empty array to hold elements.
     const newList =  {
@@ -139,9 +159,14 @@ app.get('/api/custom-lists/:listName/superhero-ids',(req,res)=>{
 })
 
 
-// Delete a custom list
+// Delete a custom list and include precaution for side effects
 app.delete('/api/custom-lists/:listName', (req, res) => {
     const listName = req.params.listName;
+
+    // Validate the listName to prevent unintended side effects
+    if (typeof listName !== 'string') {
+        return res.status(400).json({ error: 'Invalid input data' });
+    }
     
     // Check if the custom list exists
     if (listArray[listName]) {
