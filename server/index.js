@@ -20,35 +20,64 @@ app.get('/api/superhero_powers', (req, res) => {
     res.json(superheroPowersData);
 });
 
+//Get all superhero information for a given ID
+app.get('/api/superhero-info/:id',(req, res) => {
+    const superheroId = req.params.id
+
+    const superhero = superheroInfoData.find(item => item.id === superheroId)
+
+    if(!superhero){
+        return res.status(404).json ({error : "No hero found"})
+    }
+
+    res.json(superhero)
+
+})
+
+// Get all powers for a given superhero ID
+app.get('/api/superhero-powers/:id', (req, res) => {
+    const superheroId = req.params.id;
+
+    const superhero = superheroPowersData.find(item => item.id === superheroId);
+
+    if (!superhero) {
+        return res.status(404).json({ error: "Superhero not found" });
+    }
+
+    res.json(superhero.powers);
+});
+
 // Retrieve publisher information
 app.get('/api/superhero_info/:publisher', (req, res) => {
     const publisherId = req.params.publisher;
 
-    const publisher = superheroInfoData.find(item => item.publisher === publisherId);
+    const publishers = Array.from(new Set(superheroInfoData.map(item => item.publisher)))
 
-    if (!publisher) {
+    if (!publishers) {
         return res.status(404).json({ error: "Publisher not found" });
     }
 
-    res.json(publisher);
+    res.json(publishers);
 });
 
-//Searches for ID matches
+// Get the first n number of matching superhero IDs for a given search pattern matching a given information field
 app.get('/api/superheroes_info/search', (req, res) => {
     const searchPattern = req.query.pattern;
     const searchField = req.query.field;
     const n = req.query.n ? parseInt(req.query.n) : undefined;
 
-    //Sets search parameter
-    const matchingSuperheroes = superhero_info.filter(superheroes => {
-        const field = superheroes[searchField].toLowerCase();
+    // Filter superheroes based on the search criteria
+    const matchingSuperheroes = superheroInfoData.filter(superhero => {
+        const field = superhero[searchField].toLowerCase();
         return field.includes(searchPattern.toLowerCase());
     });
-    
-    //Matches id results
-    const matchedSuperheroIds = matchingSuperheroes.map(superheroes => superheroes.id);
+
+    // Extract superhero IDs from the matching superheroes
+    const matchedSuperheroIds = matchingSuperheroes.map(superhero => superhero.id);
+
+    // Return the first n results or all matches if n is not specified
     const limitedResults = n ? matchedSuperheroIds.slice(0, n) : matchedSuperheroIds;
-    
+
     res.json(limitedResults);
 });
 
@@ -63,40 +92,94 @@ app.post('/api/custom-lists', (req, res) => {
     
     // Create a new custom list object with a name, description, and an empty array to hold elements.
     const newList =  {
-        listName: InputDeviceInfo("Enter new list name: ")
+        listName,
+        description,
+        elements: [] // Initialize an empty array for elements
     };
     
     // Add the new list to your custom lists data structure (e.g., an array or an object).
-    listArray.json(newList)
+    listArray[listName] = newList
     
     // Return a success response.
+    res.json({ message: 'New custom list is created' });
 });
 
-app.post('/api/custom-lists/:listName/add-element', (req, res) => {
+//Save a list of superhero IDs to a given custom list
+app.get('/api/custom-lists/:listName/superhero-ids', (req, res) => {
     const listName = req.params.listName;
-    const elementId = req.body.elementId;
+    const superheroIds = req.body.superheroIds
     
-    // Retrieve the custom list by name from your custom lists data structure.
+    // Check if the custom list exists
+    //if it doesn't exist
+    if (!listArray[listName]) {
+        return res.status(404).json({ error: `Custom list '${listName}' not found` });
+
+    } 
+
+    //Sets superhero ID list
+    listArray[listName].elements = superheroIds
+
+    //Success message
+    res.json({message: 'Superhero Ids are saved to the new list'})
     
-    // Find the element in your source data based on the elementId.
-    
-    // Add the element to the custom list's "elements" array.
-    
-    // Return a success response.
 });
 
-app.get('/api/custom-lists', (req, res) => {
-    // Return a list of custom lists, including their names and descriptions.
-});
+//Get the list of superhero IDS for a custom list
+app.get('/api/custom-lists/:listName/superhero-ids',(req,res)=>{
+    const listName = req.params.listName
+
+    //Check if list exists
+    if(!listArray[listName]){
+        return res.status(404).json({ error: 'The list: is not found'})
+    }
+
+    //Return the superhero IDS from the custom list
+    const superheroIds = listArray[listName].elements
+    res.json(superheroIds)
+})
 
 
-app.get('/api/custom-lists/:listName/elements', (req, res) => {
+// Delete a custom list
+app.delete('/api/custom-lists/:listName', (req, res) => {
     const listName = req.params.listName;
     
-    // Retrieve the custom list by name from your custom lists data structure.
-    
-    // Return the elements within the custom list.
+    // Check if the custom list exists
+    if (listArray[listName]) {
+        //deletes list
+        delete listArray[listName];
+        res.json({ message: `Custom list '${listName}' has been removed` });
+    } else {
+        // If the list doesn't exist, return an error.
+        res.status(404).json({ error: `List not found` });
+    }
 });
+
+//Get all hero info in a custom list
+app.get('/api/custom-lists/:listName/superheroes',(req,res) => {
+    const listName = req.params.listName;
+
+    //Check if list exists
+    if (!listArray[listName]){
+        return res.status(404).json({ error: 'list not found'})
+    }
+
+    const superheroIds = listArray[listName].elements
+
+    //Find superheroes in superheroInfoData based on IDs
+    const superheroesInList = superheroInfoData.filter(superhero => superheroIds.includes(superhero.id))
+
+    //Include powers for the heroes
+    const heroesWithPowers = superheroInfoData.map(superhero => {
+        const powers = superheroPowersData.find(power => power.id === superhero.id)
+        return {
+            id: superhero.id,
+            name: superhero.name,
+            information: superhero.information,
+            powers: powers ? powers.powers : [],
+        }
+    })
+    res.json(heroesWithPowers)
+})
 
 
 //Port listener
