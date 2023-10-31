@@ -1,6 +1,8 @@
 import express from 'express';
-import superheroInfoData from './superhero_info';
-import superheroPowersData from './superhero_powers';
+//Imports superhero json files
+import superheroInfoData from './superhero_info.json';
+import superheroPowersData from './superhero_powers.json';
+
 
 const app = express();
 const port = 3000;
@@ -18,39 +20,17 @@ app.get('/api/superhero_powers', (req, res) => {
     res.json(superheroPowersData);
 });
 
-//200 Successful code
-app.get('/success', (req, res) => {
-    res.send('Success!'); // Status code 200 is automatically set
-});
-
-// Handle 404 Error
-app.use((req, res, next) => {
-    res.status(404).send('Not Found');
-});
-
-//Port Listener
-app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
-});
-
-//retrieves publisher information
+// Retrieve publisher information
 app.get('/api/superhero_info/:publisher', (req, res) => {
-    const publisherId = req.params.publisher; 
-    
-    fs.readFile('superhero_info.json', (err, data) => {
-        if (err) {
-            res.status(500).send('Error reading the JSON file');
-        } else {
-            const publisherData = JSON.parse(data);
-            const publisher = publisherData.find(item => item.publisher === publisherId);
-            
-            if (!publisher) {
-                return res.status(404).json({ error: "Publisher not found" });
-            }
+    const publisherId = req.params.publisher;
 
-            res.json(publisher);
-        }
-    });
+    const publisher = superheroInfoData.find(item => item.publisher === publisherId);
+
+    if (!publisher) {
+        return res.status(404).json({ error: "Publisher not found" });
+    }
+
+    res.json(publisher);
 });
 
 //Searches for ID matches
@@ -120,6 +100,22 @@ app.get('/api/custom-lists/:listName/elements', (req, res) => {
 
 
 //Port listener
+app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+});
+
+
+//200 Successful code
+app.get('/success', (req, res) => {
+    res.send('Success!'); // Status code 200 is automatically set
+});
+
+// Handle 404 Error
+app.use((req, res, next) => {
+    res.status(404).send('Not Found');
+});
+
+//Port Listener
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
 });
