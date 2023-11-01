@@ -206,6 +206,22 @@ app.get('/api/custom-lists/:listName/superheroes',(req,res) => {
     res.json(heroesWithPowers)
 })
 
+// Define a route to detect the language of text
+app.post('/api/detect-language', (req, res) => {
+    const { text } = req.body;
+
+    if (!text) {
+        return res.status(400).json({ error: 'Text field is empty' });
+    }
+
+    try {
+        const language = detect(text);
+        res.json({ language });
+    } catch (error) {
+        res.status(500).json({ error: 'Language detection failed' });
+    }
+});
+
 
 //Port listener
 app.listen(port, () => {
