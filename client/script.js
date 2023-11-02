@@ -2,13 +2,12 @@ import { response } from "express"
 
 //Button creations
 const search = document.getElementById('searchBar')
-const sort = document.getElementById('sortBar')
 const searchFilter = document.getElementById('searchDropDown')
 const sortFilter = document.getElementById('sortDropDown')
 const create = document.getElementById('creator')
 const heroView = document.getElementById('hero')
 const listView = document.getElementById('lists')
-const view = document.getElementById('viewer')
+const options = document.getElementById('clicker')
 const searchSubmit = document.getElementById('searchSubmit')
 const sortSubmit = document.getElementById('sortSubmit')
 const viewer = document.getElementById('viewer')
@@ -20,10 +19,19 @@ const favorite = document.getElementById('favoriteLists')
 
 // Function to fetch superhero data from the back-end
 const fetchSuperheroes = async () => {
+    try{
     const response = await fetch('/api/superhero_info');
+    if(response.ok){
     const superheroes = await response.json();
-    return superheroes;
-};
+    return superheroes
+    }else{
+        console.error('Failed to fetch superheroes');
+    } 
+    }catch (error) {
+        console.error('Error:', error);
+    }
+}; 
+fetchSuperheroes()
 
 // Function to display superhero data
 const displaySuperheroes = (superheroes) => {
@@ -63,7 +71,7 @@ const displaySuperheroes = (superheroes) => {
     } catch (error) {
         console.error('Error:', error);
     }
-})();
+});
 
 
 //search
@@ -222,7 +230,7 @@ const retrieveLists = async () => {
             lists.forEach(async (list)=>{
                 const translatedListName = await translateText(list.listName, 'en')
                 const listElement = document.createElement('div')
-                listElement.innerHTML = '<h2>${translatedListName}}</h2>'
+                listElement.innerHTML = '<h2>${translatedListName}</h2>'
                 listElement.addEventListener('click', () => showSuperheroesInList(list.listName))
                 viewer.appendChild(listElement)
             })
@@ -236,13 +244,14 @@ const retrieveLists = async () => {
 
 // Function to show superheroes in a selected list
 function showSuperheroesInList(listName) {
-    //Clear viewer
-    viewer.innerHTML = ''; // Clear previous list
+    
 
     // Send a request to the backend to retrieve superhero IDs in the selected list
     fetch(`/api/custom-lists/${listName}/superhero-ids`)
         .then(response => response.json())
         .then(superheroIds => {
+            //Clear viewer
+            viewer.innerHTML = ''; // Clear previous list
 
             if (superheroIds.length > 0) {
                 superheroIds.forEach(superheroId => {
@@ -272,12 +281,54 @@ function showSuperheroesInList(listName) {
 //Initial list retrieval and display
 retrieveLists()
 
+// Load and display superheroes on page load
+viewer.addEventListener('load', async () => {
+    try {
+        const superheroes = await fetchSuperheroes();
+        displaySuperheroes(superheroes);
+    } catch (error) {
+        console.error('Error:', error);
+    }
+});
+
+// Function to display all the created lists
+function displayAllLists() {
+    // Send a request to the backend to retrieve all created lists
+    fetch(`/api/custom-lists`)
+      .then(response => response.json())
+      .then(lists => {
+        viewer.innerHTML = ''; // Clear previous list
+  
+        if (lists.length > 0) {
+          lists.forEach(list => {
+            const listElement = document.createElement('div');
+            listElement.innerHTML = `
+              <h2>${list.name}</h2>
+              <p>Description: ${list.description}</p>`;
+            viewer.appendChild(listElement);
+          });
+        } else {
+          viewer.innerHTML = 'No lists have been created yet.';
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
+    }
+
 
 //Changes viewers to lists
-view.addEventListener('change', function () {
+options.addEventListener('change', function () {
     // Check if the radio button is selected
     if (listView.checked) {
+        heroView.checked = false
+        displayAllLists()
     }
+    else if (heroView.checked){
+        listView.checked = false
+        showSuperheroesInList()
+    }
+
 
 })
 
