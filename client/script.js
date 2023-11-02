@@ -1,18 +1,22 @@
 import { response } from "express"
+import { serialize } from "v8"
 
 //Button creations
 const search = document.getElementById('searchBar')
 const searchFilter = document.getElementById('searchDropDown')
+const searchSubmit = document.getElementById('searchSubmit')
+
 const sortFilter = document.getElementById('sortDropDown')
+const sortSubmit = document.getElementById('sortSubmit')
+
 const create = document.getElementById('creator')
+const newListName = document.getElementById('newName')
+
 const heroView = document.getElementById('hero')
 const listView = document.getElementById('lists')
 const options = document.getElementById('clicker')
-const searchSubmit = document.getElementById('searchSubmit')
-const sortSubmit = document.getElementById('sortSubmit')
+
 const viewer = document.getElementById('viewer')
-const newListName = document.getElementById('newName')
-const favorite = document.getElementById('favoriteLists')
 
 
 //Button commands
@@ -31,19 +35,11 @@ const fetchSuperheroes = async () => {
         console.error('Error:', error);
     }
 }; 
-fetchSuperheroes()
+
 
 // Function to display superhero data
 const displaySuperheroes = (superheroes) => {
     viewer.innerHTML = ''; // Clear previous list
-    const field = sortFilter.value;
-
-    superheroes.sort((a, b) => {
-        if (a[field] < b[field]) return -1;
-        if (a[field] > b[field]) return 1;
-        return 0;
-    });
-
     superheroes.forEach(superhero => {
 
         // Sanitize user input using DOMPurify
@@ -76,54 +72,33 @@ const displaySuperheroes = (superheroes) => {
 
 //search
 // Function to fetch superheroes based on search criteria
-const fetchSuperheroesByCriteria = async (searchCriteria, searchText) => {
+const searchHeroes = async () => {
+    const searchText = search.value
+    const filter = searchFilter.value
     const response = await fetch(`/api/superheroes_info/search?pattern=${searchText}&field=${searchCriteria}`);
     if (response.ok) {
         const data = await response.json();
-
-        // Clear previous viewer results
-        viewer.innerHTML = '';
-
-        if (data.length > 0) {
-            // Display results
-            data.forEach(result => {
-                const resultElement = document.createElement('div');
-                resultElement.textContent = result;
-                viewer.appendChild(resultElement);
-            });
-        } else {
-            // No results output
-            viewer.textContent = 'No results';
-        }
+        displaySuperheroes(data)
     } else {
         console.error('Request failed with status:', response.status);
     }
 };
 
 // Event listener for the search button click
-searchSubmit.addEventListener('click', async () => {
-    const searchText = search.value;
-    const searchCriteria = searchFilter.value;
-    try {
-        // Fetch and display superheroes based on the search criteria
-        await fetchSuperheroesByCriteria(searchCriteria, searchText);
-    } catch (error) {
-        console.error('Error:', error);
-    }
+searchSubmit.addEventListener('click', () => {
+    searchHeroes()
 });
 
 
 // Handle sorting button click
 sortSubmit.addEventListener('click', async () => {
-    try {
         const sortValue = sortFilter.value
+        const superheroes = await fetchSuperheroes()
         //Fetch and display sorted heroes
-        const sortedHeroes = await fetchAndSortSuperheroes(sortValue)
-        displaySuperheroes(sortedHeroes)
-    } catch (error){
-        console.error('Error:', error)
-    }
-});
+        superheroes.sort((a, b) => a[sortValue].localeCompare(b[sortValue]));
+        displaySuperheroes(superheroes)
+    } 
+);
 
 // Function to fetch and sort superheroes
 const fetchAndSortSuperheroes = async (sortFilter) => {
@@ -171,8 +146,9 @@ fetchAndDisplaySuperheroes();
 
 
 
-//Function for creating new favorite list
-const createList = async (listName) => {
+//Function for creating new  list
+const createList = async () => {
+    const newName = newListName.value
     try{
         const response = await fetch ('/api/custom-lists', {
             method: 'POST',
@@ -180,20 +156,19 @@ const createList = async (listName) => {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                name: listName,
+                name: newName,
                 description: 'Favorite Superheroes List',
             }),
         })
         if (response.ok){
-            const newList = await response.json()
-            return newList
+            newListName.value=''
+            retrieveLists()
         } else {
             console.error('Failed to create a new list')
             return null
         }
     } catch (error){
         console.error('Error: ', error)
-        return null
     }
 }
 
@@ -211,72 +186,54 @@ const translateText = async (text, targetLanguage) => {
 
 
 //Event listener for new list creator
-create.addEventListener('click', async ()=> {
-    const listName = newListName.value
-    const translatedListName = await translateText(listName,'en')
-    createList(translatedListName).then(() => {
-        newListName.value = ''
-        retrieveLists()
-    })
+create.addEventListener('click', ()=> {
+    createList()
 })
 
 //Function to retrieve and display favorite lists
 const retrieveLists = async () => {
-    try{
         const response = await fetch ('/api/custom-lists')
         if (response.ok){
             const lists = await response.json()
             viewer.innerHTML = '';
             lists.forEach(async (list)=>{
-                const translatedListName = await translateText(list.listName, 'en')
                 const listElement = document.createElement('div')
-                listElement.innerHTML = '<h2>${translatedListName}</h2>'
+                listElement.textContent = list.name
                 listElement.addEventListener('click', () => showSuperheroesInList(list.listName))
                 viewer.appendChild(listElement)
             })
         } else {
             console.error('Failed to retrieve lists')
         }
-    } catch (error) {
-        console.error('Error:', error)
     }
-}
 
 // Function to show superheroes in a selected list
-function showSuperheroesInList(listName) {
-    
-
+const showSuperheroesInList = async (listName) => {
     // Send a request to the backend to retrieve superhero IDs in the selected list
-    fetch(`/api/custom-lists/${listName}/superhero-ids`)
-        .then(response => response.json())
-        .then(superheroIds => {
-            //Clear viewer
-            viewer.innerHTML = ''; // Clear previous list
-
-            if (superheroIds.length > 0) {
-                superheroIds.forEach(superheroId => {
-                    // Send a request to the backend to retrieve superhero details
-                    fetch(`/api/superhero-info/${superheroId}`)
-                        .then((response) => response.json())
-                        .then((superhero) => {
-                            // Display superhero information and powers
-                            const superheroElement = document.createElement('div');
-                            superheroElement.innerHTML = `
-                                <h3>${superhero.name}</h3>
-                                <p>Race: ${superhero.race}</p>
-                                <p>Publisher: ${superhero.publisher}</p>
-                                <p>Powers: ${superhero.powers.join(', ')}</p>`;
-                            viewer.appendChild(superheroElement);
-                        })
-                });
-            } else {
-                viewer.innerHTML = 'No superheroes in this list.';
-            }
-        })
-        .catch((error) => {
-            console.error('Error:', error);
-        })
-    }
+    const response = await fetch(`/api/custom-lists/${listName}/superhero-ids`)
+       if(response.ok){
+        const heroIDs = await response.json()
+        const heroes = await Promise.all(
+            heroIDs.map(async(superheroId) => {
+                const response = await fetch(`/api/superhero-info/${superheroId}`);
+                if (response.ok){
+                    return response.json()
+                }
+            })
+        )
+        heroesContainer.innerHTML = '';
+        superheroes.forEach((superhero) => {
+            const superheroElement = document.createElement('div');
+            superheroElement.innerHTML = `
+                <h3>${superhero.name}</h3>
+                <p>Race: ${superhero.race}</p>
+                <p>Publisher: ${superhero.publisher}</p>
+                <p>Powers: ${superhero.powers.join(', ')}</p>
+                `;
+            heroesContainer.appendChild(superheroElement);
+    });
+  }
+}
 
 //Initial list retrieval and display
 retrieveLists()
