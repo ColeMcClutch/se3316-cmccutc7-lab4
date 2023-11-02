@@ -16,8 +16,8 @@ app.use(bodyParser.json()); // Parse JSON request bodies
 
 // Implement rate limiting to prevent abuse
 const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
+  windowMs: 15 * 60 * 1000, 
+  max: 100, 
 });
 app.use('/api/', apiLimiter);
 
@@ -97,7 +97,7 @@ app.get('/api/superheroes_info/search', (req, res) => {
 });
 
 //List variable
-const listArray = {}
+const customLists = {}
 
 
 //Create new lists with input validation
@@ -117,8 +117,8 @@ app.post('/api/custom-lists', (req, res) => {
         elements: [] // Initialize an empty array for elements
     };
     
-    // Add the new list to your custom lists data structure (e.g., an array or an object).
-    listArray[listName] = newList
+    // Add the new list to your custom lists data structure 
+    customLists[listName] = newList
     
     // Return a success response.
     res.json({ message: 'New custom list is created' });
@@ -127,17 +127,16 @@ app.post('/api/custom-lists', (req, res) => {
 //Save a list of superhero IDs to a given custom list
 app.get('/api/custom-lists/:listName/superhero-ids', (req, res) => {
     const listName = req.params.listName;
-    const superheroIds = req.body.superheroIds
+    const list = customLists[listName]
     
     // Check if the custom list exists
     //if it doesn't exist
-    if (!listArray[listName]) {
+    if (!list) {
         return res.status(404).json({ error: `Custom list '${listName}' not found` });
 
     } 
 
-    //Sets superhero ID list
-    listArray[listName].elements = superheroIds
+    res.json(list.elements)
 
     //Success message
     res.json({message: 'Superhero Ids are saved to the new list'})
@@ -147,14 +146,15 @@ app.get('/api/custom-lists/:listName/superhero-ids', (req, res) => {
 //Get the list of superhero IDS for a custom list
 app.get('/api/custom-lists/:listName/superhero-ids',(req,res)=>{
     const listName = req.params.listName
+    const list = customLists[listName]
 
     //Check if list exists
-    if(!listArray[listName]){
+    if(!list){
         return res.status(404).json({ error: 'The list: is not found'})
     }
 
     //Return the superhero IDS from the custom list
-    const superheroIds = listArray[listName].elements
+    const superheroIds = list.elements
     res.json(superheroIds)
 })
 
@@ -169,9 +169,9 @@ app.delete('/api/custom-lists/:listName', (req, res) => {
     }
     
     // Check if the custom list exists
-    if (listArray[listName]) {
+    if (customLists[listName]) {
         //deletes list
-        delete listArray[listName];
+        delete customLists[listName];
         res.json({ message: `Custom list '${listName}' has been removed` });
     } else {
         // If the list doesn't exist, return an error.
@@ -182,16 +182,18 @@ app.delete('/api/custom-lists/:listName', (req, res) => {
 //Get all hero info in a custom list
 app.get('/api/custom-lists/:listName/superheroes',(req,res) => {
     const listName = req.params.listName;
+    const list = customLists[listName]
 
     //Check if list exists
-    if (!listArray[listName]){
+    if (!list){
         return res.status(404).json({ error: 'list not found'})
     }
 
-    const superheroIds = listArray[listName].elements
+    const superheroIds = list.elements
 
     //Find superheroes in superheroInfoData based on IDs
-    const superheroesInList = superheroInfoData.filter(superhero => superheroIds.includes(superhero.id))
+    const superheroesInList = superheroInfoData.filter(superhero => 
+    superheroIds.includes(superhero.id))
 
     //Include powers for the heroes
     const heroesWithPowers = superheroInfoData.map(superhero => {
