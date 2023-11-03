@@ -129,8 +129,8 @@ const fetchAndSortSuperheroes = async (sortFilter) => {
 //sort functionality
 const fetchAndDisplaySuperheroes = async () => {
     try {
-        const sortFilter = document.getElementById('sortFilter').value;
-        const sortedSuperheroes = await fetchAndSortSuperheroes(sortFilter);
+        const sort = sortFilter.value;
+        const sortedSuperheroes = await fetchAndSortSuperheroes(sort);
         displaySuperheroes(sortedSuperheroes);
     } catch (error) {
         console.error('Error:', error);
