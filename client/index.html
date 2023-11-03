@@ -59,23 +59,26 @@
 
 </div>
 
-<!-- Shows specific superheroes from list -->
-<div id="selectHeroList"></div>
 
 <!--Radio buttons-->
 <div id = "clicker">
     <h2>Show:</h2>
     <form>
-        <input type="radio" id="hero" name="heroView" value="heros">
+        <input type="radio" id="hero" name="view" value="heros">
         <label for="hero">Heros</label><br>
     
-        <input type="radio" id="lists" name="listView" value="lists">
+        <input type="radio" id="lists" name="view" value="lists">
         <label for="lists">Lists</label><br> 
     
     </form>
     </div>
 
 <div id = "viewer"></div>
+<!-- Shows superheroes from list -->
+<div id="heroView"></div>
+
+<!--Show all lists-->
+<div id = "listView">></div>
 
 <!-- Embedded JavaScript go here -->
 <script type="module" src="script.js"></script>
