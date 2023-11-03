@@ -39,7 +39,7 @@ app.get('/api/superhero_powers', (req, res) => {
 app.get('/api/superhero-info/:id',(req, res) => {
     const superheroId = req.params.id
 
-    const superhero = superheroInfoData.find(item => item.id === superheroId)
+    const superhero = superheroInfoData.find((hero) => hero.id === superheroId)
 
     if(!superhero){
         return res.status(404).json ({error : "No hero found"})
@@ -53,7 +53,7 @@ app.get('/api/superhero-info/:id',(req, res) => {
 app.get('/api/superhero-powers/:id', (req, res) => {
     const superheroId = req.params.id;
 
-    const superhero = superheroPowersData.find(item => item.id === superheroId);
+    const superhero = superheroPowersData.find((powers) => powers.id === superheroId);
 
     if (!superhero) {
         return res.status(404).json({ error: "Superhero not found" });
@@ -64,9 +64,7 @@ app.get('/api/superhero-powers/:id', (req, res) => {
 
 // Retrieve publisher information
 app.get('/api/superhero_info/:publisher', (req, res) => {
-    const publisherId = req.params.publisher;
-
-    const publishers = Array.from(new Set(superheroInfoData.map(item => item.publisher)))
+    const publishers = (new Set(superheroInfoData.map(hero => hero.publisher)))
 
     if (!publishers) {
         return res.status(404).json({ error: "Publisher not found" });
