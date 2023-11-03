@@ -42,18 +42,13 @@ const displaySuperheroes = (superheroes) => {
     viewer.innerHTML = ''; // Clear previous list
     superheroes.forEach(superhero => {
 
-        // Sanitize user input using DOMPurify
-        const sanitizedName = DOMPurify.sanitize(superhero.name);
-        const sanitizedRace = DOMPurify.sanitize(superhero.race);
-        const sanitizedPublisher = DOMPurify.sanitize(superhero.publisher);
-        const sanitizedPowers = DOMPurify.sanitize(superhero.powers.join(', '));
-
+       
         const superheroElement = document.createElement('div');
         superheroElement.innerHTML = `
-            <h3>${sanitizedName}</h3>
-            <p>Race: ${sanitizedRace}</p>
-            <p>Publisher: ${sanitizedPublisher}</p>
-            <p>Powers: ${sanitizedPowers}</p>
+            <h3>${superhero.name}</h3>
+            <p>Race: ${superhero.race}</p>
+            <p>Publisher: ${superhero.publisher}</p>
+            <p>Powers: ${superhero.powers.join(', ')}</p>
         `;
         viewer.appendChild(superheroElement);
     });
