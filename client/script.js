@@ -12,11 +12,13 @@ const sortSubmit = document.getElementById('sortSubmit')
 const create = document.getElementById('creator')
 const newListName = document.getElementById('newName')
 
-const heroView = document.getElementById('hero')
-const listView = document.getElementById('lists')
+const heroButton = document.getElementById('hero')
+const listButton = document.getElementById('lists')
 const options = document.getElementById('clicker')
 
 const viewer = document.getElementById('viewer')
+const heroesContainer = document.getElementById('heroView')
+const listContainer = document.getElementById('listView')
 
 
 //Button commands
@@ -50,7 +52,7 @@ const displaySuperheroes = (superheroes) => {
             <p>Publisher: ${superhero.publisher}</p>
             <p>Powers: ${superhero.powers.join(', ')}</p>
         `;
-        viewer.appendChild(superheroElement);
+        heroesContainer.appendChild(superheroElement);
     });
 };
 
@@ -191,11 +193,12 @@ const retrieveLists = async () => {
         if (response.ok){
             const lists = await response.json()
             viewer.innerHTML = '';
+            listContainer.innerHTML=''
             lists.forEach(async (list)=>{
                 const listElement = document.createElement('div')
                 listElement.textContent = list.name
                 listElement.addEventListener('click', () => showSuperheroesInList(list.listName))
-                viewer.appendChild(listElement)
+                listContainer.appendChild(listElement)
             })
         } else {
             console.error('Failed to retrieve lists')
@@ -217,7 +220,7 @@ const showSuperheroesInList = async (listName) => {
             })
         )
         heroesContainer.innerHTML = '';
-        superheroes.forEach((superhero) => {
+        heroes.forEach((superhero) => {
             const superheroElement = document.createElement('div');
             superheroElement.innerHTML = `
                 <h3>${superhero.name}</h3>
@@ -250,6 +253,7 @@ function displayAllLists() {
       .then(response => response.json())
       .then(lists => {
         viewer.innerHTML = ''; // Clear previous list
+        listContainer.innerHTML=''
   
         if (lists.length > 0) {
           lists.forEach(list => {
@@ -257,7 +261,7 @@ function displayAllLists() {
             listElement.innerHTML = `
               <h2>${list.name}</h2>
               <p>Description: ${list.description}</p>`;
-            viewer.appendChild(listElement);
+            listContainer.appendChild(listElement);
           });
         } else {
           viewer.innerHTML = 'No lists have been created yet.';
@@ -267,20 +271,22 @@ function displayAllLists() {
         console.error('Error:', error);
       });
     }
+const radioButtons  = document.getElementsByName('view')
+radioButtons.forEach(radio => {
+    //Sets heros to be on screen already
+    heroButton.checked = true
 
+    //Changes viewers to lists
 
-//Changes viewers to lists
-options.addEventListener('change', function () {
-    // Check if the radio button is selected
-    if (listView.checked) {
-        heroView.checked = false
-        displayAllLists()
-    }
-    else if (heroView.checked){
-        listView.checked = false
-        showSuperheroesInList()
-    }
-
-
+    options.addEventListener('change', function () {
+        // Check if the radio button is selected
+        if (listButton.checked = true) {
+            heroButton.checked = false
+            displayAllLists()
+        }
+        else if (heroButton.checked = true){
+            listButton.checked = false
+            showSuperheroesInList()
+        }
+    })
 })
-
