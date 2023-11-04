@@ -2,6 +2,7 @@ import express from 'express';
 //Imports superhero json files
 import superheroInfoData from './superhero_info.json';
 import superheroPowersData from './superhero_powers.json';
+import mongoose from 'mongoose'
 
 
 const rateLimit = require("express-rate-limit");
@@ -13,11 +14,44 @@ const port = 3000;
 const helmet = require('helmet');
 const bodyParser = require('body-parser');
 
+
+// Define the MongoDB connection URL and options
+const dbUrl = 'mongodb://localhost/superheroes_db';
+const dbOptions = {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+};
+
+// Connect to the MongoDB database
+mongoose.connect(dbUrl, dbOptions)
+  .then(() => {
+    console.log('Connected to MongoDB');
+  })
+  .catch((err) => {
+    console.error('Error connecting to MongoDB:', err);
+  });
+
+  // Define Mongoose models for superhero information and powers
+const superheroInfoData = mongoose.model('SuperheroInfo', new mongoose.Schema({
+    id: String,
+    name: String,
+    // Define other fields as needed
+  }));
+  
+  const superheroPowersData = mongoose.model('SuperheroPowers', new mongoose.Schema({
+    id: String,
+    powers: [String],
+  }));
+
+
+
+
+
 // Set up middleware for security
 app.use(helmet()); // Helmet helps secure your Express apps by setting various HTTP headers
 app.use(bodyParser.json()); // Parse JSON request bodies
 // Setting up front-end code
-app.use('/', express.static('static'));
+app.use('/', express.static('../client'));
 
 // Implement rate limiting to prevent abuse
 const apiLimiter = rateLimit({
@@ -28,16 +62,26 @@ app.use('/api/', apiLimiter);
 
 
 
+app.get('/api/superhero_info', async (req, res) => {
+    try {
+      const superheroes = await superheroInfoData.find();
+      res.json(superheroes);
+    } catch (error) {
+      console.error('Error fetching superheroes:', error);
+      res.status(500).json({ error: 'Failed to fetch superheroes' });
+    }
+  });
+  
+  app.get('/api/superhero_powers', async (req, res) => {
+    try {
+      const superheroPowers = await superheroPowersData.find();
+      res.json(superheroPowers);
+    } catch (error) {
+      console.error('Error fetching superhero powers:', error);
+      res.status(500).json({ error: 'Failed to fetch superhero powers' });
+    }
+  });
 
-// Superhero_info app
-app.get('/api/superhero_info', (req, res) => {
-    res.json(superheroInfoData);
-});
-
-// Superhero_powers app
-app.get('/api/superhero_powers', (req, res) => {
-    res.json(superheroPowersData);
-});
 
 //Get all superhero information for a given ID
 app.get('/api/superhero-info/:id',(req, res) => {
