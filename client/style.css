@@ -50,6 +50,7 @@ body{
     width: 80%;
     border: 1px solid;
     display: flex;
+    background-color: cadetblue;
   }
 
 #listView{
@@ -58,7 +59,16 @@ body{
     height: 500px;
     width: 20%;
     border: 1px solid;
+    background-color: aqua;
   }
+
+.highlighted{
+    background-color: aqua;
+}
+
+.unhighlighted{
+    background-color: cadetblue;
+}
 
 .clicker{
     display: inline-flex;
