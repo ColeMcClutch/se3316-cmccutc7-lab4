@@ -25,7 +25,9 @@ const deleteDrop = document.getElementById('deleteDrop')
 const fetchSuperheroes = async () => {
     try{
     const response = await fetch('/api/superhero_info')
-    response.then(data => {})
+    .then(data => {
+        heroView.textContent='data'
+    })
     if(response.ok){
     const superheroes = await response.json();
     console.log(superheroes)
