@@ -2,17 +2,22 @@ import express from 'express';
 //Imports superhero json files
 import superheroInfoData from './superhero_info.json';
 import superheroPowersData from './superhero_powers.json';
-const bodyParser = require('body-parser');
-const helmet = require('helmet');
+
+
 const rateLimit = require("express-rate-limit");
 
 //Express application
 const app = express();
 const port = 3000;
 
+const helmet = require('helmet');
+const bodyParser = require('body-parser');
+
 // Set up middleware for security
 app.use(helmet()); // Helmet helps secure your Express apps by setting various HTTP headers
 app.use(bodyParser.json()); // Parse JSON request bodies
+// Setting up front-end code
+app.use('/', express.static('static'));
 
 // Implement rate limiting to prevent abuse
 const apiLimiter = rateLimit({
@@ -22,8 +27,7 @@ const apiLimiter = rateLimit({
 app.use('/api/', apiLimiter);
 
 
-// Setting up front-end code
-app.use('/', express.static('static'));
+
 
 // Superhero_info app
 app.get('/api/superhero_info', (req, res) => {

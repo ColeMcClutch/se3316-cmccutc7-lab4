@@ -12,12 +12,10 @@ const sortSubmit = document.getElementById('sortSubmit')
 const create = document.getElementById('creator')
 const newListName = document.getElementById('newName')
 
-const heroButton = document.getElementById('hero')
-const listButton = document.getElementById('lists')
-const options = document.getElementById('clicker')
-
 const heroView = document.getElementById('heroView')
 const listView = document.getElementById('heroView')
+
+const deleteDrop = document.getElementById('deleteDrop')
 
 
 
@@ -26,9 +24,11 @@ const listView = document.getElementById('heroView')
 // Function to fetch superhero data from the back-end
 const fetchSuperheroes = async () => {
     try{
-    const response = await fetch('/api/superhero_info');
+    const response = await fetch('/api/superhero_info')
+    response.then(data => {})
     if(response.ok){
     const superheroes = await response.json();
+    console.log(superheroes)
     return superheroes
     }else{
         console.error('Failed to fetch superheroes');
@@ -87,15 +87,7 @@ searchSubmit.addEventListener('click', () => {
 });
 
 
-// Handle sorting button click
-sortSubmit.addEventListener('click', async () => {
-        const sortValue = sortFilter.value
-        const superheroes = await fetchSuperheroes()
-        //Fetch and display sorted heroes
-        superheroes.sort((a, b) => a[sortValue].localeCompare(b[sortValue]));
-        displaySuperheroes(superheroes)
-    } 
-);
+
 
 // Function to fetch and sort superheroes
 const fetchAndSortSuperheroes = async (sortFilter) => {
@@ -137,9 +129,14 @@ const fetchAndDisplaySuperheroes = async () => {
     }
 };
 
-// Load and display superheroes on initial page start
-fetchAndDisplaySuperheroes();
-
+// Handle sorting button click
+sortSubmit.addEventListener('click', async () => {
+    const sortValue = sortFilter.value
+    const superheroes = await fetchSuperheroes()
+    //Fetch and display sorted heroes
+    fetchAndDisplaySuperheroes()
+} 
+);
 
 
 
@@ -160,6 +157,8 @@ const createList = async () => {
         if (response.ok){
             newListName.value=''
             retrieveLists()
+            deleteDrop.appendChild(newName)
+
         } else {
             console.error('Failed to create a new list')
             return null
@@ -235,6 +234,7 @@ const showSuperheroesInList = async (listName) => {
 //Initial list retrieval and display
 retrieveLists()
 
+
 // Load and display superheroes on page load
 heroView.addEventListener('load', async () => {
     try {
@@ -270,30 +270,5 @@ function displayAllLists() {
     }
 
 
-//Radio button operations
-const radioButtons  = document.getElementsByName('view')
-radioButtons.forEach(radio => {
-    //Sets heros to be on screen already
-    heroButton.checked = true
-
-    //Changes viewers to lists
-
-    options.addEventListener('change', function () {
-        // Check if the radio button is selected
-        if (listButton.checked = true) {
-            heroButton.checked = false
-            listView.classList.toggle('highlighted');
-            heroView.classList.toggle('unhighlighted');
-
-
-            displayAllLists()
-        }
-        else if (heroButton.checked = true){
-            listButton.checked = false
-            heroView.classList.toggle('highlighted');
-            listView.classList.toggle('unhighlighted');
-
-            showSuperheroesInList()
-        }
-    })
-})
+//Display all superheroes
+fetchAndDisplaySuperheroes()
