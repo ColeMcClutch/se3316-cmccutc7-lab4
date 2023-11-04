@@ -16,9 +16,9 @@ const heroButton = document.getElementById('hero')
 const listButton = document.getElementById('lists')
 const options = document.getElementById('clicker')
 
-const viewer = document.getElementById('viewer')
-const heroesContainer = document.getElementById('heroView')
-const listContainer = document.getElementById('listView')
+const heroView = document.getElementById('heroView')
+const listView = document.getElementById('heroView')
+
 
 
 //Button commands
@@ -41,7 +41,7 @@ const fetchSuperheroes = async () => {
 
 // Function to display superhero data
 const displaySuperheroes = (superheroes) => {
-    viewer.innerHTML = ''; // Clear previous list
+    heroView.innerHTML = ''; // Clear previous list
     superheroes.forEach(superhero => {
 
        
@@ -52,7 +52,7 @@ const displaySuperheroes = (superheroes) => {
             <p>Publisher: ${superhero.publisher}</p>
             <p>Powers: ${superhero.powers.join(', ')}</p>
         `;
-        heroesContainer.appendChild(superheroElement);
+        heroView.appendChild(superheroElement);
     });
 };
 
@@ -72,7 +72,7 @@ const displaySuperheroes = (superheroes) => {
 const searchHeroes = async () => {
     const searchText = search.value
     const filter = searchFilter.value
-    const response = await fetch(`/api/superheroes_info/search?pattern=${searchText}&field=${searchCriteria}`);
+    const response = await fetch(`/api/superheroes_info/search?pattern=${searchText}&field=${filter}`);
     if (response.ok) {
         const data = await response.json();
         displaySuperheroes(data)
@@ -192,13 +192,12 @@ const retrieveLists = async () => {
         const response = await fetch ('/api/custom-lists')
         if (response.ok){
             const lists = await response.json()
-            viewer.innerHTML = '';
-            listContainer.innerHTML=''
+            listView.innerHTML = '';
             lists.forEach(async (list)=>{
                 const listElement = document.createElement('div')
                 listElement.textContent = list.name
                 listElement.addEventListener('click', () => showSuperheroesInList(list.listName))
-                listContainer.appendChild(listElement)
+                listView.appendChild(listElement)
             })
         } else {
             console.error('Failed to retrieve lists')
@@ -219,7 +218,7 @@ const showSuperheroesInList = async (listName) => {
                 }
             })
         )
-        heroesContainer.innerHTML = '';
+        heroView.innerHTML = '';
         heroes.forEach((superhero) => {
             const superheroElement = document.createElement('div');
             superheroElement.innerHTML = `
@@ -228,7 +227,7 @@ const showSuperheroesInList = async (listName) => {
                 <p>Publisher: ${superhero.publisher}</p>
                 <p>Powers: ${superhero.powers.join(', ')}</p>
                 `;
-            heroesContainer.appendChild(superheroElement);
+            heroView.appendChild(superheroElement);
     });
   }
 }
@@ -237,7 +236,7 @@ const showSuperheroesInList = async (listName) => {
 retrieveLists()
 
 // Load and display superheroes on page load
-viewer.addEventListener('load', async () => {
+heroView.addEventListener('load', async () => {
     try {
         const superheroes = await fetchSuperheroes();
         displaySuperheroes(superheroes);
@@ -252,25 +251,26 @@ function displayAllLists() {
     fetch(`/api/custom-lists`)
       .then(response => response.json())
       .then(lists => {
-        viewer.innerHTML = ''; // Clear previous list
-        listContainer.innerHTML=''
-  
+        listView.innerHTML = ''; // Clear previous list
         if (lists.length > 0) {
           lists.forEach(list => {
             const listElement = document.createElement('div');
             listElement.innerHTML = `
               <h2>${list.name}</h2>
               <p>Description: ${list.description}</p>`;
-            listContainer.appendChild(listElement);
+            listView.appendChild(listElement);
           });
         } else {
-          viewer.innerHTML = 'No lists have been created yet.';
+          listView.innerHTML = 'No lists have been created yet.';
         }
       })
       .catch(error => {
         console.error('Error:', error);
       });
     }
+
+
+//Radio button operations
 const radioButtons  = document.getElementsByName('view')
 radioButtons.forEach(radio => {
     //Sets heros to be on screen already

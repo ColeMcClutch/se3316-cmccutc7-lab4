@@ -222,13 +222,6 @@ app.post('/api/detect-language', (req, res) => {
     }
 });
 
-
-//Port listener
-app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
-});
-
-
 //200 Successful code
 app.get('/success', (req, res) => {
     res.send('Success!'); // Status code 200 is automatically set

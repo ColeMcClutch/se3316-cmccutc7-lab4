@@ -9,6 +9,10 @@ display: flex;
 border: 1px solid;
 }
 
+#searchMethods{
+    display: flex;
+}
+
 /*Title edits*/
 .title{
     font-size: 48px;
@@ -34,10 +38,26 @@ body{
     display: flex;
 }
 
+
 #viewer{
+    display: flex;
+}
+
+#heroView{
     font-size: 16px;
     background-color: gray;
-    height: 1000px;
+    height: 500px;
+    width: 80%;
+    border: 1px solid;
+    display: flex;
+  }
+
+#listView{
+    font-size: 16px;
+    background-color: gray;
+    height: 500px;
+    width: 20%;
+    border: 1px solid;
   }
 
 .clicker{
