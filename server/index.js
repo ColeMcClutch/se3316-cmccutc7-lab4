@@ -32,24 +32,21 @@ mongoose.connect(dbUrl, dbOptions)
   });
 
   // Define Mongoose models for superhero information and powers
-const superheroInfoData = mongoose.model('SuperheroInfo', new mongoose.Schema({
+const SuperheroInfo = mongoose.model('SuperheroInfo', new mongoose.Schema({
     id: String,
     name: String,
     // Define other fields as needed
   }));
   
-  const superheroPowersData = mongoose.model('SuperheroPowers', new mongoose.Schema({
+  const SuperheroPowers = mongoose.model('SuperheroPowers', new mongoose.Schema({
     id: String,
     powers: [String],
   }));
 
 
-
-
-
 // Set up middleware for security
 app.use(helmet()); // Helmet helps secure your Express apps by setting various HTTP headers
-app.use(bodyParser.json()); // Parse JSON request bodies
+app.use(express.json()); // Parse JSON request bodies
 // Setting up front-end code
 app.use('/', express.static('../client'));
 
@@ -60,11 +57,11 @@ const apiLimiter = rateLimit({
 });
 app.use('/api/', apiLimiter);
 
-
-
+  
+//Mongoose models
 app.get('/api/superhero_info', async (req, res) => {
     try {
-      const superheroes = await superheroInfoData.find();
+      const superheroes = await SuperheroInfo.find();
       res.json(superheroes);
     } catch (error) {
       console.error('Error fetching superheroes:', error);
@@ -74,7 +71,7 @@ app.get('/api/superhero_info', async (req, res) => {
   
   app.get('/api/superhero_powers', async (req, res) => {
     try {
-      const superheroPowers = await superheroPowersData.find();
+      const superheroPowers = await SuperheroPowers.find();
       res.json(superheroPowers);
     } catch (error) {
       console.error('Error fetching superhero powers:', error);
@@ -82,6 +79,15 @@ app.get('/api/superhero_info', async (req, res) => {
     }
   });
 
+// Superhero_info app
+app.get('/api/superhero_info', (req, res) => {
+    res.json(superheroInfoData);
+});
+
+// Superhero_powers app
+app.get('/api/superhero_powers', (req, res) => {
+    res.json(superheroPowersData);
+});
 
 //Get all superhero information for a given ID
 app.get('/api/superhero-info/:id',(req, res) => {
