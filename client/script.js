@@ -1,6 +1,9 @@
 import { response } from "express"
 import { serialize } from "v8"
 
+import { fetch } from "node-fetch";
+import { translate } from "your-translation-library";
+
 //Button creations
 const search = document.getElementById('searchBar')
 const searchFilter = document.getElementById('searchDropDown')
@@ -69,6 +72,8 @@ const displaySuperheroes = (superheroes) => {
     }
 });
 
+displaySuperheroes()
+
 
 
 //search
@@ -80,6 +85,7 @@ const searchHeroes = async () => {
     if (response.ok) {
         const data = await response.json();
         displaySuperheroes(data)
+        console.log('')
     } else {
         console.error('Request failed with status:', response.status);
     }
@@ -88,6 +94,7 @@ const searchHeroes = async () => {
 // Event listener for the search button click
 searchSubmit.addEventListener('click', () => {
     searchHeroes()
+    
 });
 
 
@@ -161,6 +168,7 @@ const createList = async () => {
         if (response.ok){
             newListName.value=''
             retrieveLists()
+
             const newOption = document.createElement('option')
             newOption.text=newListName.value
             deleteDrop.appendChild(newOption)
