@@ -25,9 +25,6 @@ const deleteDrop = document.getElementById('deleteDrop')
 const fetchSuperheroes = async () => {
     try{
     const response = await fetch('/api/superhero_info')
-    .then(data => {
-        heroView.textContent='data'
-    })
     if(response.ok){
     const superheroes = await response.json();
     console.log(superheroes)
@@ -40,6 +37,10 @@ const fetchSuperheroes = async () => {
     }
 }; 
 
+fetchSuperheroes()
+.then(data => {
+    heroView.textContent='data'
+})
 
 // Function to display superhero data
 const displaySuperheroes = (superheroes) => {
@@ -67,6 +68,7 @@ const displaySuperheroes = (superheroes) => {
         console.error('Error:', error);
     }
 });
+
 
 
 //search
@@ -159,7 +161,9 @@ const createList = async () => {
         if (response.ok){
             newListName.value=''
             retrieveLists()
-            deleteDrop.appendChild(newName)
+            const newOption = document.createElement('option')
+            newOption.text=newListName.value
+            deleteDrop.appendChild(newOption)
 
         } else {
             console.error('Failed to create a new list')
@@ -271,6 +275,8 @@ function displayAllLists() {
       });
     }
 
+//Display lists immediately
+displayAllLists()
 
 //Display all superheroes
 fetchAndDisplaySuperheroes()
