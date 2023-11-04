@@ -282,10 +282,17 @@ radioButtons.forEach(radio => {
         // Check if the radio button is selected
         if (listButton.checked = true) {
             heroButton.checked = false
+            listView.classList.toggle('highlighted');
+            heroView.classList.toggle('unhighlighted');
+
+
             displayAllLists()
         }
         else if (heroButton.checked = true){
             listButton.checked = false
+            heroView.classList.toggle('highlighted');
+            listView.classList.toggle('unhighlighted');
+
             showSuperheroesInList()
         }
     })
