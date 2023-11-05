@@ -8,6 +8,8 @@ import { stringify } from 'querystring';
 const app = express();
 const port = 3000;
 
+app.use(express.static("../client"));
+
 // Define the MongoDB connection URL and options
 const dbUrl = 'mongodb://localhost/superheroes_db';
 const dbOptions = {

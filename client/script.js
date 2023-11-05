@@ -30,7 +30,7 @@ const fetchSuperheroes = async () => {
     const response = await fetch('/api/superhero_info')
     if(response.ok){
     const superheroes = await response.json();
-    console.log(superheroes)
+    console.log(superheroes.textContent)
     return superheroes
     }else{
         console.error('Failed to fetch superheroes');
@@ -42,17 +42,17 @@ const fetchSuperheroes = async () => {
 
 fetchSuperheroes()
 .then(data => {
-    heroView.textContent='data'
+    heroView.textContent=data
 })
 
 // Function to display superhero data
 const displaySuperheroes = (superheroes) => {
-    heroView.innerHTML = ''; // Clear previous list
+    heroView.textContent= ''; // Clear previous list
     superheroes.forEach(superhero => {
 
        
         const superheroElement = document.createElement('div');
-        superheroElement.innerHTML = `
+        superheroElement.textContent = `
             <h3>${superhero.name}</h3>
             <p>Race: ${superhero.race}</p>
             <p>Publisher: ${superhero.publisher}</p>
@@ -205,7 +205,7 @@ const retrieveLists = async () => {
         const response = await fetch ('/api/custom-lists')
         if (response.ok){
             const lists = await response.json()
-            listView.innerHTML = '';
+            listView.textcontent = '';
             lists.forEach(async (list)=>{
                 const listElement = document.createElement('div')
                 listElement.textContent = list.name
@@ -231,10 +231,10 @@ const showSuperheroesInList = async (listName) => {
                 }
             })
         )
-        heroView.innerHTML = '';
+        heroView.textcontent = '';
         heroes.forEach((superhero) => {
             const superheroElement = document.createElement('div');
-            superheroElement.innerHTML = `
+            superheroElement.textcontent = `
                 <h3>${superhero.name}</h3>
                 <p>Race: ${superhero.race}</p>
                 <p>Publisher: ${superhero.publisher}</p>
@@ -265,17 +265,17 @@ function displayAllLists() {
     fetch(`/api/custom-lists`)
       .then(response => response.json())
       .then(lists => {
-        listView.innerHTML = ''; // Clear previous list
+        listView.textcontent = ''; // Clear previous list
         if (lists.length > 0) {
           lists.forEach(list => {
             const listElement = document.createElement('div');
-            listElement.innerHTML = `
+            listElement.textcontent = `
               <h2>${list.name}</h2>
               <p>Description: ${list.description}</p>`;
             listView.appendChild(listElement);
           });
         } else {
-          listView.innerHTML = 'No lists have been created yet.';
+          listView.textcontent = 'No lists have been created yet.';
         }
       })
       .catch(error => {
