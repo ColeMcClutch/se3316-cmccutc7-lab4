@@ -1,19 +1,12 @@
 import express from 'express';
-//Imports superhero json files
-import superheroInfoData from './superhero_info.json';
-import superheroPowersData from './superhero_powers.json';
 import mongoose from 'mongoose'
-
-
-const rateLimit = require("express-rate-limit");
+import rateLimit from 'express-rate-limit'
+import helmet from 'helmet'
+import { stringify } from 'querystring';
 
 //Express application
 const app = express();
 const port = 3000;
-
-const helmet = require('helmet');
-const bodyParser = require('body-parser');
-
 
 // Define the MongoDB connection URL and options
 const dbUrl = 'mongodb://localhost/superheroes_db';
@@ -35,7 +28,8 @@ mongoose.connect(dbUrl, dbOptions)
 const SuperheroInfo = mongoose.model('SuperheroInfo', new mongoose.Schema({
     id: String,
     name: String,
-    // Define other fields as needed
+    publisher: String,
+    race: String
   }));
   
   const SuperheroPowers = mongoose.model('SuperheroPowers', new mongoose.Schema({
@@ -59,19 +53,19 @@ app.use('/api/', apiLimiter);
 
   
 //Mongoose models
-app.get('/api/superhero_info', async (req, res) => {
+app.get('/api/superhero_info/:id', async (req, res) => {
     try {
-      const superheroes = await SuperheroInfo.find();
-      res.json(superheroes);
+      const superhero = await SuperheroInfo.findOne({id: req.params.id});
+      res.json(superhero);
     } catch (error) {
       console.error('Error fetching superheroes:', error);
       res.status(500).json({ error: 'Failed to fetch superheroes' });
     }
   });
   
-  app.get('/api/superhero_powers', async (req, res) => {
+  app.get('/api/superhero_powers/:id', async (req, res) => {
     try {
-      const superheroPowers = await SuperheroPowers.find();
+      const superheroPowers = await SuperheroPowers.findOne({id: req.params.id});
       res.json(superheroPowers);
     } catch (error) {
       console.error('Error fetching superhero powers:', error);
@@ -79,77 +73,31 @@ app.get('/api/superhero_info', async (req, res) => {
     }
   });
 
-// Superhero_info app
-app.get('/api/superhero_info', (req, res) => {
-    res.json(superheroInfoData);
-});
-
-// Superhero_powers app
-app.get('/api/superhero_powers', (req, res) => {
-    res.json(superheroPowersData);
-});
-
-//Get all superhero information for a given ID
-app.get('/api/superhero-info/:id',(req, res) => {
-    const superheroId = req.params.id
-
-    const superhero = superheroInfoData.find((hero) => hero.id === superheroId)
-
-    if(!superhero){
-        return res.status(404).json ({error : "No hero found"})
-    }
-
-    res.json(superhero)
-
-})
-
-// Get all powers for a given superhero ID
-app.get('/api/superhero-powers/:id', (req, res) => {
-    const superheroId = req.params.id;
-
-    const superhero = superheroPowersData.find((powers) => powers.id === superheroId);
-
-    if (!superhero) {
-        return res.status(404).json({ error: "Superhero not found" });
-    }
-
-    res.json(superhero.powers);
-});
-
 // Retrieve publisher information
-app.get('/api/superhero_info/:publisher', (req, res) => {
-    const publishers = (new Set(superheroInfoData.map(hero => hero.publisher)))
-
-    if (!publishers) {
-        return res.status(404).json({ error: "Publisher not found" });
-    }
-
+app.get('/api/superhero_info/:publisher', async (req, res) => {
+    try{
+    const publishers = await SuperheroInfo.distinct('publisher')
     res.json(publishers);
+    } catch (error){
+        console.error('Error fetching publishers:', error)
+        res.status(500).json({ error: 'Failed to fetch publishers' });
+    }
 });
 
 // Get the first n number of matching superhero IDs for a given search pattern matching a given information field
-app.get('/api/superheroes_info/search', (req, res) => {
-    const searchPattern = req.query.pattern;
-    const searchField = req.query.field;
-    const n = req.query.n ? parseInt(req.query.n) : undefined;
-
-    // Filter superheroes based on the search criteria
-    const matchingSuperheroes = superheroInfoData.filter(superhero => {
-        const field = superhero[searchField].toLowerCase();
-        return field.includes(searchPattern.toLowerCase());
-    });
-
-    // Extract superhero IDs from the matching superheroes
-    const matchedSuperheroIds = matchingSuperheroes.map(superhero => superhero.id);
-
-    // Return the first n results or all matches if n is not specified
-    const limitedResults = n ? matchedSuperheroIds.slice(0, n) : matchedSuperheroIds;
-
-    res.json(limitedResults);
+app.get('/api/superheroes_info/search', async (req, res) => {
+    const { field, pattern, n } = req.query
+    try{
+        // Filter superheroes based on the search criteria
+        const pattern = new RegExp(pattern, 'i')
+        const query = { [field]: { $regex: regexPattern} };        
+        const matchedSuperheroes = await SuperheroInfo.find(query).limit(parseInt(n)||0)
+        res.json(matchedSuperheroes.map(hero => hero.id));
+    } catch (error){
+        console.error('Error searching for superheroes:', error);
+        res.status(500).json({ error: 'Failed to search for superheroes' });     
+    }
 });
-
-//List variable
-const customLists = {}
 
 
 //Create new lists with input validation
@@ -259,22 +207,6 @@ app.get('/api/custom-lists/:listName/superheroes',(req,res) => {
     })
     res.json(heroesWithPowers)
 })
-
-// Define a route to detect the language of text
-app.post('/api/detect-language', (req, res) => {
-    const { text } = req.body;
-
-    if (!text) {
-        return res.status(400).json({ error: 'Text field is empty' });
-    }
-
-    try {
-        const language = detect(text);
-        res.json({ language });
-    } catch (error) {
-        res.status(500).json({ error: 'Language detection failed' });
-    }
-});
 
 //200 Successful code
 app.get('/success', (req, res) => {
