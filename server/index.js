@@ -76,7 +76,7 @@ app.get('/api/superhero_info/:id', async (req, res) => {
 // Retrieve publisher information
 app.get('/api/superhero_info/:publisher', async (req, res) => {
     try{
-    const publishers = await SuperheroInfo.distinct('publisher',{publisher: req.params.publisher})
+    const publishers = await SuperheroInfo.distinct('publisher')
     res.json(publishers);
     } catch (error){
         console.error('Error fetching publishers:', error)
@@ -198,10 +198,7 @@ app.get('/api/custom-lists/:listName/superheroes', async (req,res) => {
 
     const superheroIds = list.elements
 
-    //Find superheroes in superheroInfoData based on IDs
-    const superheroesInList = superheroInfoData.filter(superhero => 
-    superheroIds.includes(superhero.id))
-
+  
     //Include powers for the heroes
     try{ 
       const superheroes = await SuperheroInfo.find({ id: { $in: superheroIds } });
