@@ -1,6 +1,10 @@
-const mongoose = require('mongoose')
+//Imports
+const nodeStorage = require('node-storage')
 const rateLimit =  require('express-rate-limit')
 const helmet =  require ('helmet')
+
+// Prepare Storage
+const store = new nodeStorage("superheroes/lists.json");
 
 //Express application
 const express = require('express');
@@ -9,34 +13,8 @@ const port = 3000;
 
 app.use(express.static('client'));
 
-// Define the MongoDB connection URL and options
-const dbUrl = 'mongodb://localhost/superheroes_db';
-const dbOptions = {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-};
-
-// Connect to the MongoDB database
-mongoose.connect(dbUrl, dbOptions)
-  .then(() => {
-    console.log('Connected to MongoDB');
-  })
-  .catch((err) => {
-    console.error('Error connecting to MongoDB:', err);
-  });
-
-  // Define Mongoose models for superhero information and powers
-const SuperheroInfo = mongoose.model('SuperheroInfo', new mongoose.Schema({
-    id: String,
-    name: String,
-    publisher: String,
-    race: String
-  }));
-  
-  const SuperheroPowers = mongoose.model('SuperheroPowers', new mongoose.Schema({
-    id: String,
-    powers: [String],
-  }));
+const superheroInfo = require("./superheroes/superhero_info.json")
+const superheroPowers = require("./superheroes/superhero_powers.json")
 
 
 // Set up middleware for security
@@ -53,10 +31,10 @@ const apiLimiter = rateLimit({
 app.use('/api/', apiLimiter);
 
   
-//Mongoose models
-app.get('/api/superhero_info/:id', async (req, res) => {
+//retrieve data from the given json files
+app.get('/api/superheroes/superhero_info/:id', (req, res) => {
     try {
-      const superhero = await SuperheroInfo.findOne({id: req.params.id});
+      const superhero = superheroInfo.find((hero) => hero.id == req.params.id);
       res.json(superhero);
     } catch (error) {
       console.error('Error fetching superheroes:', error);
@@ -64,10 +42,16 @@ app.get('/api/superhero_info/:id', async (req, res) => {
     }
   });
   
-  app.get('/api/superhero_powers/:id', async (req, res) => {
+  app.get('/api/superheroes/superhero_powers/:id', (req, res) => {
     try {
-      const superheroPowers = await SuperheroPowers.findOne({id: req.params.id});
-      res.json(superheroPowers);
+      const superhero = superheroInfo.find((hero) => hero.id == req.params.id);
+      const heroPowers = superheroPowers.find((power) => power.hero_names == superhero.name)
+      if(heroPowers == undefined){
+        res.status(404).send("hero powers not found")
+      }
+      else{
+      res.json(heroPowers);
+      }
     } catch (error) {
       console.error('Error fetching superhero powers:', error);
       res.status(500).json({ error: 'Failed to fetch superhero powers' });
@@ -75,24 +59,17 @@ app.get('/api/superhero_info/:id', async (req, res) => {
   });
 
 // Retrieve publisher information
-app.get('/api/superhero_info/:publisher', async (req, res) => {
-    try{
-    const publishers = await SuperheroInfo.distinct('publisher')
-    res.json(publishers);
-    } catch (error){
-        console.error('Error fetching publishers:', error)
-        res.status(500).json({ error: 'Failed to fetch publishers' });
-    }
-});
+app.get('/api/superheroes/publisher_info',  (req, res) => {
+    res.json([...new Set(superheroInfo.map((hero) => hero.Publisher))]);
+    });
 
 // Get the first n number of matching superhero IDs for a given search pattern matching a given information field
-app.get('/api/superheroes_info/search', async (req, res) => {
+app.get('/api/superheroes/superhero_search',  (req, res) => {
     try{
         const { field, pattern, n } = req.query
         // Filter superheroes based on the search criteria
-        const regexPattern = new RegExp(pattern, 'i')
-        const query = { [field]: { $regex: regexPattern} };        
-        const matchedSuperheroes = await SuperheroInfo.find(query).limit(parseInt(n)||0)
+        const regexPattern = new RegExp(pattern, 'i');
+        const matchedSuperheroes = superheroInfo.filter((hero) =>regexPattern.test(hero[field])).slice(0, parseInt(n) || superheroInfo.length);
         res.json(matchedSuperheroes.map(hero => hero.id));
     } catch (error){
         console.error('Error searching for superheroes:', error);
@@ -100,11 +77,10 @@ app.get('/api/superheroes_info/search', async (req, res) => {
     }
 });
 
-//create custom list
-const customLists = {}
+
 
 //Create new lists with input validation
-app.post('/api/custom-lists', (req, res) => {
+app.post('/api/superheroes/new-lists', (req, res) => {
     const listName = req.body.name;
     const description = req.body.description;
 
@@ -113,7 +89,7 @@ app.post('/api/custom-lists', (req, res) => {
         return res.status(400).json({ error: 'Invalid input data' });
     }
 
-    if (customLists[listName]) {
+    if (store.get(listName)) {
       return res.status(400).json({ error: 'Custom list name already exists' });
     }
     
@@ -125,16 +101,16 @@ app.post('/api/custom-lists', (req, res) => {
     };
     
     // Add the new list to your custom lists data structure 
-    customLists[listName] = newList
+    store.put(listName, newList);
     
     // Return a success response.
     res.json({ message: 'New custom list is created' });
 });
 
 //Save a list of superhero IDs to a given custom list
-app.post('/api/custom-lists/:listName/superhero-ids', (req, res) => {
+app.post('/api/superheroes/custom-Idlists/:listName', (req, res) => {
     const listName = req.params.listName;
-    const list = customLists[listName]
+    const list = store.get(listName)
     const superheroIds = req.body.superheroIds
     
     // Check if the custom list exists
@@ -152,9 +128,9 @@ app.post('/api/custom-lists/:listName/superhero-ids', (req, res) => {
 });
 
 //Get the list of superhero IDS for a custom list
-app.get('/api/custom-lists/:listName/superhero-ids',(req,res)=>{
+app.get('/api/superheroes/custom/:listName/superhero-ids',(req,res)=>{
     const listName = req.params.listName
-    const list = customLists[listName]
+    const list = store.get(listName)
 
     //Check if list exists
     if(!list){
@@ -168,7 +144,7 @@ app.get('/api/custom-lists/:listName/superhero-ids',(req,res)=>{
 
 
 // Delete a custom list and include precaution for side effects
-app.delete('/api/custom-lists/:listName', (req, res) => {
+app.delete('/api/superheroes/lists/:listName', (req, res) => {
     const listName = req.params.listName;
 
     // Validate the listName to prevent unintended side effects
@@ -177,9 +153,9 @@ app.delete('/api/custom-lists/:listName', (req, res) => {
     }
     
     // Check if the custom list exists
-    if (customLists[listName]) {
+    if (store.get(listName)) {
         //deletes list
-        delete customLists[listName];
+        delete store.get(listName);
         res.json({ message: `Custom list '${listName}' has been removed` });
     } else {
         // If the list doesn't exist, return an error.
@@ -188,9 +164,9 @@ app.delete('/api/custom-lists/:listName', (req, res) => {
 });
 
 //Get all hero info in a custom list
-app.get('/api/custom-lists/:listName/superheroes', async (req,res) => {
+app.get('/api/superheroes/c-l/:listName/superheroes',  (req,res) => {
     const listName = req.params.listName;
-    const list = customLists[listName]
+    const list = store.get(listName)
 
     //Check if list exists
     if (!list){
@@ -202,8 +178,8 @@ app.get('/api/custom-lists/:listName/superheroes', async (req,res) => {
   
     //Include powers for the heroes
     try{ 
-      const superheroes = await SuperheroInfo.find({ id: { $in: superheroIds } });
-      const powers = await SuperheroPowers.find({ id: { $in: superheroIds } });
+      const superheroes =  superheroInfo.find({ id: { $in: superheroIds } });
+      const powers =  superheroPowers.find({ id: { $in: superheroIds } });
     
       const heroesWithPowers =  superheroes.map(superhero => {
         const superheroPowers =  powers.find(power => power.id === superhero.id)

@@ -75,3 +75,9 @@ body{
 .subtitle{
     margin-right: 200px;
 }
+
+#publisherButton{
+    background-color: blue;
+    color: white;
+    border: 1px solid;
+}
