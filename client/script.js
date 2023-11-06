@@ -18,8 +18,9 @@ const newListName = document.getElementById('newName')
 const heroView = document.getElementById('heroView')
 const listView = document.getElementById('heroView')
 
-const deleteDrop = document.getElementById('deleteDrop')
+const deleteDrop = document.getElementById('deleteDropdown')
 
+console.log("hello")
 
 
 //Button commands
@@ -31,6 +32,7 @@ const fetchSuperheroes = async () => {
     if(response.ok){
     const superheroes = await response.json();
     console.log(superheroes.textContent)
+    heroView.appendChild(superheroes)
     return superheroes
     }else{
         console.error('Failed to fetch superheroes');
@@ -47,17 +49,20 @@ fetchSuperheroes()
 
 // Function to display superhero data
 const displaySuperheroes = (superheroes) => {
+    superheroes = fetch('/api/superhero_info')
     heroView.textContent= ''; // Clear previous list
     superheroes.forEach(superhero => {
 
        
         const superheroElement = document.createElement('div');
-        superheroElement.textContent = `
+        const superheroText = document.createTextNode (`
             <h3>${superhero.name}</h3>
             <p>Race: ${superhero.race}</p>
             <p>Publisher: ${superhero.publisher}</p>
             <p>Powers: ${superhero.powers.join(', ')}</p>
-        `;
+        `);
+        console.log(superheroText)
+        superheroElement.appendChild(superheroText)
         heroView.appendChild(superheroElement);
     });
 };
@@ -205,7 +210,7 @@ const retrieveLists = async () => {
         const response = await fetch ('/api/custom-lists')
         if (response.ok){
             const lists = await response.json()
-            listView.textcontent = '';
+            listView.textContent = '';
             lists.forEach(async (list)=>{
                 const listElement = document.createElement('div')
                 listElement.textContent = list.name
@@ -231,10 +236,10 @@ const showSuperheroesInList = async (listName) => {
                 }
             })
         )
-        heroView.textcontent = '';
+        heroView.textContent = '';
         heroes.forEach((superhero) => {
             const superheroElement = document.createElement('div');
-            superheroElement.textcontent = `
+            superheroElement.textContent = `
                 <h3>${superhero.name}</h3>
                 <p>Race: ${superhero.race}</p>
                 <p>Publisher: ${superhero.publisher}</p>
@@ -265,17 +270,17 @@ function displayAllLists() {
     fetch(`/api/custom-lists`)
       .then(response => response.json())
       .then(lists => {
-        listView.textcontent = ''; // Clear previous list
+        listView.textContent = ''; // Clear previous list
         if (lists.length > 0) {
           lists.forEach(list => {
             const listElement = document.createElement('div');
-            listElement.textcontent = `
+            listElement.textContent = `
               <h2>${list.name}</h2>
               <p>Description: ${list.description}</p>`;
             listView.appendChild(listElement);
           });
         } else {
-          listView.textcontent = 'No lists have been created yet.';
+          listView.textContent = 'No lists have been created yet.';
         }
       })
       .catch(error => {

@@ -5,7 +5,10 @@
 <title>SE 3316 Lab 1</title>
 <meta name="se3316-lab3-cmccutc7" content="width=device-width, initial-scale=1.0">
 <meta name="Cole McCutcheon" content="">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet"  type="text/css" href="style.css">
+<script type="module" src="script.js" defer></script>
+
 </head>
 
 
@@ -64,14 +67,27 @@
 </div>
 
 
-<div id = 'viewer'>
-    <!-- Shows superheroes from list -->
-    <div id="heroView"></div>
 
-    <!--Show all lists-->
-    <div id = "listView"></div>
+<!--Show all lists-->
+<div id = "listView">
+    <h2>Lists: </h2>
 </div>
+
+
+<!-- Shows superheroes from list -->
+<div id="heroView">
+    <h2>Heroes: </h2>
+<div id = "subtitles">
+    <h3 class = "subtitle", id = "ID">ID</h3>
+    <h3 class = "subtitle", id = "name">Name</h3>
+    <h3 class = "subtitle", id = "race">Race</h3>
+    <h3 class = "subtitle", id = "publisher">Publisher</h3>
+    <h3 class = "subtitle", id = "powers">Powers</h3>
+</div>
+</div>
+
+    
+
 <!-- Embedded JavaScript go here -->
-<script type="module" src="script.js"></script>
 </body>
 </html>

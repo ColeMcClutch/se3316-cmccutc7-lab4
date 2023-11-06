@@ -39,25 +39,20 @@ body{
 }
 
 
-#viewer{
-    display: flex;
-}
 
 #heroView{
     font-size: 16px;
     height: 1000px;
-    width: 80%;
     border: 1px solid;
-    display: flex;
     background-color: cadetblue;
   }
 
 #listView{
     font-size: 16px;
-    height: 1000px;
-    width: 20%;
+    height: 200px;
     border: 1px solid;
-    background-color: aqua;
+    background-color: cornflowerblue;
+    display: flex;
   }
 
 
@@ -71,4 +66,12 @@ body{
     background-color: blue;
     color: white;
     border: 1px solid;
+}
+
+#subtitles{
+    display: flex;
+}
+
+.subtitle{
+    margin-right: 200px;
 }
