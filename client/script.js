@@ -10,7 +10,8 @@ const create = document.getElementById('creator')
 const newListName = document.getElementById('newName')
 
 const heroView = document.getElementById('heroView')
-const listView = document.getElementById('heroView')
+const listView = document.getElementById('listView')
+const listTitle = document.getElementById('listTitle')
 
 const deleteDrop = document.getElementById('deleteDropdown')
 
@@ -19,15 +20,15 @@ const pubButton = document.getElementById('publisherButton')
 const deleteButton = document.getElementById('deleteSubmit')
 
 
+
 //Button commands
 
 // Function to display superhero data
 const displaySuperheroes = () => {
-    const tableBody = document.getElementById("subtitles");
-    fetch('/api/superheroes/superhero_info/:id')
+    fetch('/api/superheroes/superhero_info')
     .then((response) => {
         if (response.ok) {
-            console.log(response.json());
+            return response.json()
         } else {
             throw new Error('Failed to fetch superheroes');
         }
@@ -36,13 +37,18 @@ const displaySuperheroes = () => {
     superheroes.forEach(superhero => {
         const row = document.createElement("tr");
         row.innerHTML = `
-            <th>${superhero.id}</th>
-            <th>${superhero.name}</th>
-            <th>${superhero.race}</th>
-            <th>${superhero.publisher}</th>
-            <th>${superhero.powers.join(", ")}</th>
+            <td>${superhero.id}</td>
+            <td>${superhero.name}</td>
+            <td>${superhero.Race}</td>
+            <td>${superhero.Publisher}</td>
+            <td>${superhero.powers && superhero.powers.length ? superhero.powers.join(", ") : 'No powers'}</td>
         `;
-        tableBody.appendChild(row);
+
+        row.querySelectorAll('td').forEach(td => {
+            td.classList.add('centered-text');
+        });
+
+        heroView.appendChild(row);
     });
 })
 };
@@ -66,26 +72,39 @@ pubButton.addEventListener('click', () => {
 })
 
 const publisherDisplay = async () => {
+try{
     const response = await fetch('/api/superheroes/publisher_info')
-    alert(response.textContent())
+    if (response.ok){
+        const publishers = await response.json();
+        alert(`Publishers: ${publishers.join(', ')}`);
+    } else {
+        console.error('Request failed! Status: ', response)
+    }
+    } catch (error){
+        console.error('Error: ', error);
+    }
 }
-
 
 //Delete function
 
+
+//EDIT CODE FROM HERE
 
 //search
 // Function to fetch superheroes based on search criteria
 const searchHeroes = async () => {
     const searchText = search.value
     const filter = searchFilter.value
-    const response = await fetch(`/api/superheroes_info/search?pattern=${encodeURIComponent(searchText)}&field=${encodeURIComponent(filter)}`);
-    if (response.ok) {
-        const data = await response.json();
-        displaySuperheroes(data)
-        console.log('')
-    } else {
-        console.error('Request failed with status:', response.status);
+    try{
+        const response = await fetch(`/api/superheroes/superhero_search?pattern=${encodeURIComponent(searchText)}&field=${encodeURIComponent(filter)}`);
+        if (response.ok) {
+            const data = await response.json();
+            displaySuperheroes(data)
+        } else {
+            console.error('Request failed with status:', response.status);
+        }
+    }catch (error){
+        console.error('Error', error)
     }
 };
 
@@ -154,23 +173,23 @@ sortSubmit.addEventListener('click',  () => {
 const createList = async () => {
     const newName = newListName.value
     try {
-        const response = await fetch('/api/superheroes/new-lists', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                name: newName,
-                description: 'Favorite Superheroes List',
-            }),
+        const response = await fetch(`/api/superheroes/new-lists/${newName}/New%20List`, {
+            method: 'POST',  
         })
         if (response.ok) {
-            newListName.value = ''
+            newListName.textContent = ''
             retrieveLists()
 
             const newOption = document.createElement('option')
-            newOption.text = newListName.value
+            newOption.textContent = newListName.value
+            newOption.value = newListName.value
             deleteDrop.appendChild(newOption)
+
+            //Add List to listView
+            const row = document.createElement('tr')
+            row.innerHTML = `<td>${newListName.value}</td>`;
+            listTitle.appendChild(row)
+
 
         } else {
             console.error('Failed to create a new list')
@@ -189,16 +208,17 @@ create.addEventListener('click', () => {
 
 //Function to retrieve and display favorite lists
 const retrieveLists = async () => {
-    const response = await fetch('/api/custom-lists')
+    const response = await fetch('/api/superheroes/custom-lists')
     if (response.ok) {
         const lists = await response.json()
         listView.textContent = '';
-        lists.forEach(async (list) => {
+
+        for(const listName in (lists)) {
             const listElement = document.createElement('div')
-            listElement.textContent = list.name
-            listElement.addEventListener('click', () => showSuperheroesInList(list.listName))
+            listElement.textContent = listName
+            listElement.addEventListener('click', () => showSuperheroesInList(listName))
             listView.appendChild(listElement)
-        })
+        }
     } else {
         console.error('Failed to retrieve lists')
     }
@@ -207,7 +227,8 @@ const retrieveLists = async () => {
 // Function to show superheroes in a selected list
 const showSuperheroesInList = async (listName) => {
     // Send a request to the backend to retrieve superhero IDs in the selected list
-    const response = await fetch(`/api/custom-lists/${listName}/superhero-ids`)
+    try{
+    const response = await fetch(`/api/superheroes/custom-lists/${listName}/superhero-ids`)
     if (response.ok) {
         const heroIDs = await response.json()
         const heroes = await Promise.all(
@@ -220,16 +241,23 @@ const showSuperheroesInList = async (listName) => {
         )
         heroView.textContent = '';
         heroes.forEach((superhero) => {
+            if(superhero){
             const superheroElement = document.createElement('div');
-            superheroElement.textContent = `
+            superheroElement.innerHTML = `
                 <h3>${superhero.name}</h3>
                 <p>Race: ${superhero.race}</p>
                 <p>Publisher: ${superhero.publisher}</p>
                 <p>Powers: ${superhero.powers.join(', ')}</p>
                 `;
             heroView.appendChild(superheroElement);
+            }
         });
+    } else {
+        console.error('Failed to retrieve superhero IDs:', response.status);
     }
+} catch (error) {
+    console.error('Error:', error);
+}
 }
 
 //Initial list retrieval and display
@@ -269,6 +297,34 @@ function displayAllLists() {
             console.error('Error:', error);
         });
 }
+
+
+//function to delete lists
+const deleteLists = async () =>{
+    try{
+        const removal = deleteDrop.value
+        const response = await fetch(`/api/superheroes/lists/${removal}`, {
+            method: 'DELETE'
+        });
+        if (response.ok){
+            deleteDrop.remove(removal)
+            listView.deleteRow(removal)
+
+        }else if (response.status === 404) {
+            console.error(`List '${listName}' not found`);
+        } else {
+            console.error('Failed to delete the list');
+        }   
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+deleteButton.addEventListener('click',() => {
+    deleteLists()
+})
+
+
 
 //Display lists immediately
 displayAllLists()
