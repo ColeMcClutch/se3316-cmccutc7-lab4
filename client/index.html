@@ -62,31 +62,37 @@
 
 <!--Drop down for list-->
 <label for="deleteDropdown">Delete list:</label>
-<select id="deleteDropdown"></select>
+<select id="deleteDropdown"> <!--Inject data here-->  </select>
 
+<!--Delete list button-->
+<button type = "button" id = "deleteSubmit">Delete</button>
+
+
+<button type = "button", id="publisherButton">Publishers</button>
 </div>
-
-
 
 <!--Show all lists-->
 <div id = "listView">
     <h2>Lists: </h2>
+    <!--Inject List data here-->
 </div>
 
 
 <!-- Shows superheroes from list -->
-<div id="heroView">
+<table id="heroView">
     <h2>Heroes: </h2>
-<div id = "subtitles">
-    <h3 class = "subtitle", id = "ID">ID</h3>
-    <h3 class = "subtitle", id = "name">Name</h3>
-    <h3 class = "subtitle", id = "race">Race</h3>
-    <h3 class = "subtitle", id = "publisher">Publisher</h3>
-    <h3 class = "subtitle", id = "powers">Powers</h3>
-</div>
-</div>
+<tbody id = "subtitles">
+    <th class = "subtitle", id = "ID">ID</th>
+    <th class = "subtitle", id = "name">Name</th>
+    <th class = "subtitle", id = "race">Race</th>
+    <th class = "subtitle", id = "publisher">Publisher</th>
+    <th class = "subtitle", id = "powers">Powers</th>
+</tbody>
+<!--Inject data here-->
 
-<div id="publisherButton"></div>
+</table>
+
+
 
 <!-- Embedded JavaScript go here -->
 </body>
