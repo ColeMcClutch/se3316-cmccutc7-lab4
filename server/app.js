@@ -31,6 +31,16 @@ const apiLimiter = rateLimit({
 app.use('/api/', apiLimiter);
 
 
+// Retrieve all superhero information
+app.get('/api/superheroes/superhero_info', (req, res) => {
+    try {
+        res.json(superheroInfo);
+    } catch (error) {
+        console.error('Error fetching superheroes:', error);
+        res.status(500).json({ error: 'Failed to fetch superheroes' });
+    }
+});
+
 //retrieve data from the given json files
 app.get('/api/superheroes/superhero_info/:id', (req, res) => {
 	try {
