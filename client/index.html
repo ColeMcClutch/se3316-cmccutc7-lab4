@@ -72,24 +72,27 @@
 </div>
 
 <!--Show all lists-->
-<div id = "listView">
+<table id = "listView">
     <h2>Lists: </h2>
     <!--Inject List data here-->
-</div>
+    <tbody id = "listTitle"></tbody>
+</table>
 
 
 <!-- Shows superheroes from list -->
 <table id="heroView">
-    <h2>Heroes: </h2>
-<tbody id = "subtitles">
-    <th class = "subtitle", id = "ID">ID</th>
-    <th class = "subtitle", id = "name">Name</th>
-    <th class = "subtitle", id = "race">Race</th>
-    <th class = "subtitle", id = "publisher">Publisher</th>
-    <th class = "subtitle", id = "powers">Powers</th>
-</tbody>
-<!--Inject data here-->
-
+    <thead>
+        <tr>
+            <th class="subtitle">ID</th>
+            <th class="subtitle">Name</th>
+            <th class="subtitle">Race</th>
+            <th class="subtitle">Publisher</th>
+            <th class="subtitle">Powers</th>
+        </tr>
+    </thead>
+    <tbody id="subtitles">
+        <!-- Your superhero data rows will go here -->
+    </tbody>
 </table>
 
 
