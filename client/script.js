@@ -18,16 +18,21 @@ const pubButton = document.getElementById('publisherButton')
 
 const deleteButton = document.getElementById('deleteSubmit')
 
-console.log("hello")
-
 
 //Button commands
 
 // Function to display superhero data
 const displaySuperheroes = () => {
     const tableBody = document.getElementById("subtitles");
-    superheroes = fetch('/api/superheroes/superhero_info/:id')
-
+    fetch('/api/superheroes/superhero_info/:id')
+    .then((response) => {
+        if (response.ok) {
+            console.log(response.json());
+        } else {
+            throw new Error('Failed to fetch superheroes');
+        }
+    })
+    .then((superheroes) => {
     superheroes.forEach(superhero => {
         const row = document.createElement("tr");
         row.innerHTML = `
@@ -39,7 +44,9 @@ const displaySuperheroes = () => {
         `;
         tableBody.appendChild(row);
     });
+})
 };
+
 
 // Load and display superheroes on page load
 (() => {
@@ -51,6 +58,7 @@ const displaySuperheroes = () => {
 });
 
 displaySuperheroes()
+
 
 //publisher button
 pubButton.addEventListener('click', () => {
@@ -136,7 +144,7 @@ sortSubmit.addEventListener('click',  () => {
     const sortValue = sortFilter.value
     const superheroes =  displaySuperheroes()
     //Fetch and display sorted heroes
-    fetchAndsortSuperheroes()
+    fetchAndSortSuperheroes()
 }
 );
 
