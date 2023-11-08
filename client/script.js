@@ -58,10 +58,12 @@ const displaySuperheroes = () => {
                      <td>${superhero.name}</td>
                      <td>${superhero.Race}</td>
                      <td>${superhero.Publisher}</td>
-                     <td>${powers ? Object.keys(powers).filter(key => powers[key] === 'True').join(', ') : 'No powers'}</td>
+                     <td>${superhero.powers && superhero.powers.length ? superhero.powers.join(", ") : 'No powers'}</td>
                  `;
 
-
+                
+                 //Loads everything. But overloads
+                 //<td>${powers ? Object.keys(powers).filter(key => powers[key] === 'True').join(', ') : 'No powers'}</td>
 
         row.querySelectorAll('td').forEach(td => {
             td.classList.add('centered-text');       
@@ -119,9 +121,10 @@ try{
 // Function to fetch superheroes based on search criteria
 const searchHeroes = async () => {
     const searchText = search.value
-    const filter = searchFilter.value
+    const selectedOption = searchFilter.options[searchFilter.selectedIndex];
+    const selectedValue = selectedOption.value;
     try{
-        const response = await fetch(`/api/superheroes/superhero_search?pattern=${encodeURIComponent(searchText)}&field=${encodeURIComponent(filter)}`);
+        const response = await fetch(`/api/superheroes/superhero_search?pattern=${encodeURIComponent(searchText)}&field=${encodeURIComponent(se)}`);
         if (response.ok) {
             const data = await response.json();
             displaySearchSuperheroes(data)
