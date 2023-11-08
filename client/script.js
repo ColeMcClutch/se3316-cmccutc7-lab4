@@ -23,60 +23,6 @@ const deleteButton = document.getElementById('deleteSubmit')
 
 //Button commands
 
-// Function to display superhero data
-//Information side
-const displaySuperheroes =  () => {
-    heroView.innerHTML = '';
-    fetch(`/api/superheroes/superhero_combined/${id}`)
-    .then((response) => {
-        if (response.ok) {
-            return response.json()
-        } else {
-            throw new Error('Failed to fetch superheroes');
-        }
-    })
-    .then((superheroes) => {
-    superheroes.forEach(superhero => {
-            if (superhero.id.includes(data)) {
-                 // Create the table row and populate with data
-                 const row = document.createElement("tr");
-                 row.innerHTML = `
-                     <td>${superhero.id}</td>
-                     <td>${superhero.name}</td>
-                     <td>${superhero.Race}</td>
-                     <td>${superhero.Publisher}</td>
-                     <td>${superhero.powers && superhero.powers.length ? superhero.powers.join(", ") : 'No powers'}</td>
-                 `;
-
-                
-        row.querySelectorAll('td').forEach(td => {
-            td.classList.add('centered-text');       
-        });
-
-        heroView.appendChild(row);
-    }
-    });
-})
-.catch(error => {
-    console.error('Error:', error);
-});
-}
-
-
-
-// Load and display superheroes on page load
-(() => {
-    try {
-        displaySuperheroes(1);
-    } catch (error) {
-        console.error('Error:', error);
-    }
-});
-
-displaySuperheroes(1)
-
-
-
 //publisher button
 pubButton.addEventListener('click', () => {
     publisherDisplay()
@@ -104,13 +50,30 @@ try{
 // Function to fetch superheroes based on search criteria
 const searchHeroes = async () => {
     const searchText = search.value
-    const selectedOption = searchFilter.options[searchFilter.selectedIndex];
-    const selectedValue = selectedOption.value;
+    const filter = searchFilter.value
+    
     try{
-        const response = await fetch(`/api/superheroes/superhero_search?pattern=${encodeURIComponent(searchText)}&field=${encodeURIComponent(se)}`);
+        const response = await fetch(`/api/superheroes/superhero_search?pattern=${encodeURIComponent(searchText)}&field=${encodeURIComponent(filter)}&n=${800}`);
         if (response.ok) {
-            const data = await response.json();
-            displaySearchSuperheroes(data)
+            const dataSet = await response.json();
+            dataSet.forEach((data) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${data.id}</td>
+                    <td>${data.name}</td>
+                    <td>${data.race}</td>
+                    <td>${data.publisher}</td>
+                    <td>${data.power}</td>
+            `;
+
+            row.querySelectorAll('td').forEach(td =>{
+                td.classList.add('centered-text');
+            })
+
+            heroView.appendChild(row)
+
+            })
+            
         } else {
             console.error('Request failed with status:', response.status);
         }
