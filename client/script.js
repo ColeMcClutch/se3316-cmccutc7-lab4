@@ -83,10 +83,7 @@ const searchHeroes = async () => {
 };
 
 
-const displaySearchSuperheroes = async (data) => {
-    
 
-};
 
 
 // Event listener for the search button click
