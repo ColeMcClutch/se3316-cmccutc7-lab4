@@ -35,34 +35,47 @@ const displaySuperheroes = () => {
         }
     })
     .then((superheroes) => {
-    superheroes.forEach(superhero => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-            <td>${superhero.id}</td>
-            <td>${superhero.name}</td>
-            <td>${superhero.Race}</td>
-            <td>${superhero.Publisher}</td>
-            <td>${superhero.powers && superhero.powers.length ? superhero.powers.join(", ") : 'No powers'}</td>
-        `;
+        // Create an array of fetch promises
+        const powersFetchPromises = superheroes.map(superhero => {
+            return fetch(`/api/superheroes/superhero_powers/${superhero.id}`)
+                .then((response) => {
+                    if (response.ok) {
+                        return response.json();
+                    }
+                });
+            })
+         // Wait for all powersFetchPromises to resolve
+         return Promise.all(powersFetchPromises)
+         .then((powersList) => {
+             // Iterate through superheroes and powersList
+             superheroes.forEach((superhero, index) => {
+                 const powers = powersList[index];
 
-        const powerArray = fetch('/api/spuerheroes/superhero_powers')
-        powerArray.forEach(powerSet => {
-            powerSet.filter(([_, value]) => value === "True")
-        })
+                 // Create the table row and populate with data
+                 const row = document.createElement("tr");
+                 row.innerHTML = `
+                     <td>${superhero.id}</td>
+                     <td>${superhero.name}</td>
+                     <td>${superhero.Race}</td>
+                     <td>${superhero.Publisher}</td>
+                     <td>${powers ? Object.keys(powers).filter(key => powers[key] === 'True').join(', ') : 'No powers'}</td>
+                 `;
+
 
 
         row.querySelectorAll('td').forEach(td => {
-            td.classList.add('centered-text');
-             // Extract the power names
-            const powerNames = truePowers.map(([power]) => power);
-            superhero.powers = powerNames.value
+            td.classList.add('centered-text');       
         });
 
         heroView.appendChild(row);
     });
 })
+})
+.catch(error => {
+    console.error('Error:', error);
+});
+}
 
-};
 
 
 // Load and display superheroes on page load
@@ -111,7 +124,7 @@ const searchHeroes = async () => {
         const response = await fetch(`/api/superheroes/superhero_search?pattern=${encodeURIComponent(searchText)}&field=${encodeURIComponent(filter)}`);
         if (response.ok) {
             const data = await response.json();
-            displaySuperheroes(data)
+            displaySearchSuperheroes(data)
         } else {
             console.error('Request failed with status:', response.status);
         }
@@ -119,6 +132,42 @@ const searchHeroes = async () => {
         console.error('Error', error)
     }
 };
+
+
+const displaySearchSuperheroes = async (data) => {
+    fetch('/api/superheroes/superhero_info')
+    heroView.innerHTML = ''
+    .then((response) => {
+        if (response.ok) {
+            return response.json()
+        } else {
+            throw new Error('Failed to fetch superheroes');
+        }
+    })
+    .then((superheroes) => {
+    superheroes.forEach(superhero => {
+        if(superhero.searchFilter.includes(data)){
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td>${superhero.id}</td>
+            <td>${superhero.name}</td>
+            <td>${superhero.Race}</td>
+            <td>${superhero.Publisher}</td>
+            <td>${superhero.powers && superhero.powers.length ? superhero.powers.join(", ") : 'No powers'}</td>
+        `;
+
+
+        row.querySelectorAll('td').forEach(td => {
+            td.classList.add('centered-text');       
+        });
+
+        heroView.appendChild(row);
+    }
+    });
+})
+
+};
+
 
 // Event listener for the search button click
 searchSubmit.addEventListener('click', () => {
@@ -323,7 +372,7 @@ const deleteLists = async () =>{
             listView.deleteRow(removal)
 
         }else if (response.status === 404) {
-            console.error(`List '${listName}' not found`);
+            console.error(`List '${removal}' not found`);
         } else {
             console.error('Failed to delete the list');
         }   

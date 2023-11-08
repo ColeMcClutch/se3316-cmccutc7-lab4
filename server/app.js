@@ -68,32 +68,6 @@ app.get('/api/superheroes/superhero_powers/:id', (req, res) => {
 	}
 });
 
-//Retrieve all power information
-app.get('/api/superheroes/superhero_powers', (req, res) => {
-    try {
-        const powersMap = new Map(); // Use a Map to store powers by superhero name
-        superheroPowers.forEach((power) => {
-            if (!powersMap.has(power.hero_names)) {
-                powersMap.set(power.hero_names, [power.power_name]);
-            } else {
-                powersMap.get(power.hero_names).push(power.power_name);
-            }
-        });
-
-        const powersArray = Array.from(powersMap, ([heroName, powers]) => ({
-            hero_name: heroName,
-            powers: powers,
-        }));
-
-        res.json(powersArray);
-    } catch (error) {
-        console.error('Error fetching superhero powers:', error);
-        res.status(500).json({ error: 'Failed to fetch superhero powers' });
-    }
-});
-
-
-
 // Retrieve publisher information
 app.get('/api/superheroes/publisher_info', (req, res) => {
 	res.json([...new Set(superheroInfo.map((hero) => hero.Publisher))]);
