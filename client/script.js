@@ -24,6 +24,7 @@ const deleteButton = document.getElementById('deleteSubmit')
 //Button commands
 
 // Function to display superhero data
+//Information side
 const displaySuperheroes = () => {
     fetch('/api/superheroes/superhero_info')
     .then((response) => {
@@ -44,13 +45,23 @@ const displaySuperheroes = () => {
             <td>${superhero.powers && superhero.powers.length ? superhero.powers.join(", ") : 'No powers'}</td>
         `;
 
+        const powerArray = fetch('/api/spuerheroes/superhero_powers')
+        powerArray.forEach(powerSet => {
+            powerSet.filter(([_, value]) => value === "True")
+        })
+
+
         row.querySelectorAll('td').forEach(td => {
             td.classList.add('centered-text');
+             // Extract the power names
+            const powerNames = truePowers.map(([power]) => power);
+            superhero.powers = powerNames.value
         });
 
         heroView.appendChild(row);
     });
 })
+
 };
 
 
@@ -64,6 +75,7 @@ const displaySuperheroes = () => {
 });
 
 displaySuperheroes()
+
 
 
 //publisher button
