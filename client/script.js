@@ -112,7 +112,6 @@ try{
     }
 }
 
-//Delete function
 
 
 //EDIT CODE FROM HERE
