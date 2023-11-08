@@ -25,8 +25,9 @@ const deleteButton = document.getElementById('deleteSubmit')
 
 // Function to display superhero data
 //Information side
-const displaySuperheroes = () => {
-    fetch('/api/superheroes/superhero_info')
+const displaySuperheroes =  () => {
+    heroView.innerHTML = '';
+    fetch(`/api/superheroes/superhero_combined/${id}`)
     .then((response) => {
         if (response.ok) {
             return response.json()
@@ -35,22 +36,8 @@ const displaySuperheroes = () => {
         }
     })
     .then((superheroes) => {
-        // Create an array of fetch promises
-        const powersFetchPromises = superheroes.map(superhero => {
-            return fetch(`/api/superheroes/superhero_powers/${superhero.id}`)
-                .then((response) => {
-                    if (response.ok) {
-                        return response.json();
-                    }
-                });
-            })
-         // Wait for all powersFetchPromises to resolve
-         return Promise.all(powersFetchPromises)
-         .then((powersList) => {
-             // Iterate through superheroes and powersList
-             superheroes.forEach((superhero, index) => {
-                 const powers = powersList[index];
-
+    superheroes.forEach(superhero => {
+            if (superhero.id.includes(data)) {
                  // Create the table row and populate with data
                  const row = document.createElement("tr");
                  row.innerHTML = `
@@ -62,16 +49,13 @@ const displaySuperheroes = () => {
                  `;
 
                 
-                 //Loads everything. But overloads
-                 //<td>${powers ? Object.keys(powers).filter(key => powers[key] === 'True').join(', ') : 'No powers'}</td>
-
         row.querySelectorAll('td').forEach(td => {
             td.classList.add('centered-text');       
         });
 
         heroView.appendChild(row);
+    }
     });
-})
 })
 .catch(error => {
     console.error('Error:', error);
@@ -83,13 +67,13 @@ const displaySuperheroes = () => {
 // Load and display superheroes on page load
 (() => {
     try {
-        displaySuperheroes();
+        displaySuperheroes(1);
     } catch (error) {
         console.error('Error:', error);
     }
 });
 
-displaySuperheroes()
+displaySuperheroes(1)
 
 
 
@@ -137,36 +121,7 @@ const searchHeroes = async () => {
 
 
 const displaySearchSuperheroes = async (data) => {
-    fetch('/api/superheroes/superhero_info')
-    heroView.innerHTML = ''
-    .then((response) => {
-        if (response.ok) {
-            return response.json()
-        } else {
-            throw new Error('Failed to fetch superheroes');
-        }
-    })
-    .then((superheroes) => {
-    superheroes.forEach(superhero => {
-        if(superhero.searchFilter.includes(data)){
-        const row = document.createElement("tr");
-        row.innerHTML = `
-            <td>${superhero.id}</td>
-            <td>${superhero.name}</td>
-            <td>${superhero.Race}</td>
-            <td>${superhero.Publisher}</td>
-            <td>${superhero.powers && superhero.powers.length ? superhero.powers.join(", ") : 'No powers'}</td>
-        `;
-
-
-        row.querySelectorAll('td').forEach(td => {
-            td.classList.add('centered-text');       
-        });
-
-        heroView.appendChild(row);
-    }
-    });
-})
+    
 
 };
 
@@ -223,8 +178,7 @@ const fetchAndDisplaySuperheroes = async () => {
 
 // Handle sorting button click
 sortSubmit.addEventListener('click',  () => {
-    const sortValue = sortFilter.value
-    const superheroes =  displaySuperheroes()
+
     //Fetch and display sorted heroes
     fetchAndSortSuperheroes()
 }

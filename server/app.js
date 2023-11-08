@@ -52,6 +52,7 @@ app.get('/api/superheroes/superhero_info/:id', (req, res) => {
 	}
 });
 
+//Powers retireval 
 app.get('/api/superheroes/superhero_powers/:id', (req, res) => {
 	try {
 		const superhero = superheroInfo.find((hero) => hero.id == req.params.id);
@@ -67,6 +68,31 @@ app.get('/api/superheroes/superhero_powers/:id', (req, res) => {
 		res.status(500).json({ error: 'Failed to fetch superhero powers' });
 	}
 });
+
+
+//Receive powers and info
+app.get('/api/superheroes/superhero_combined/:id', (req, res) => {
+	try{
+		const superhero = superheroInfo.find((hero) => hero.id == req.params.id);
+		if (!superhero) {
+			res.status(404).send("Superhero not found");
+			return;
+		}
+		const heroesWithPowers = superheroPowers.filter((power) => power.hero_names == superhero.name)
+		if (heroesWithPowers.length === 0) {
+			res.status(404).send("hero powers not found")
+		}else {
+			const heroPowers=heroesWithPowers.map((power) => power.power_name)
+			superhero.powers = heroPowers
+			res.json(superhero);
+		}
+		} catch (error) {
+		console.log('Error fetching superhero powers:', error);
+		res.status(500).json({ error: 'Failed to fetch superhero powers' });
+	}
+})
+
+
 
 // Retrieve publisher information
 app.get('/api/superheroes/publisher_info', (req, res) => {
