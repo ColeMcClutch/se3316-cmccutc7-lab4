@@ -82,7 +82,7 @@ app.get('/api/superheroes/superhero_combined/:id', (req, res) => {
 		if (heroesWithPowers.length === 0) {
 			res.status(404).send("hero powers not found")
 		}else {
-			const heroPowers=heroesWithPowers.map((power) => power.power_name)
+			const heroPowers=heroesWithPowers.map((powers) => powers.power_name)
 			superhero.powers = heroPowers
 			res.json(superhero);
 		}
