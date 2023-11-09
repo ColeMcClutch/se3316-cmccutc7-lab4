@@ -119,12 +119,13 @@ app.get('/api/superheroes/publisher_info', (req, res) => {
 
 // Get the first n number of matching superhero IDs for a given search pattern matching a given information field
 app.get('/api/superheroes/superhero_search', (req, res) => {
-	const matchedSuperheroes = []
+	let filteredSuperheroes = []
+	let matchedSuperheroes = []
 	try {
 		const { field, pattern, n } = req.query
 		// Filter superheroes based on the search criteria
 		const regexPattern = new RegExp(pattern, 'i');
-		if(field==="powers"){
+		if(field==="power"){
 			superheroPowers.forEach((hero)=>{
 				for(power in hero){
 					if(regexPattern.test(power)){
@@ -140,7 +141,10 @@ app.get('/api/superheroes/superhero_search', (req, res) => {
 				}
 			})
 		} else{
-			matchedSuperheroes = superheroInfo.filter((hero) => regexPattern.test(hero[field])).slice(0, parseInt(n) || superheroInfo.length);
+			filteredSuperheroes = superheroInfo.filter((hero) => regexPattern.test(hero[field]))
+			console.log(filteredSuperheroes)
+			matchedSuperheroes = filteredSuperheroes.slice(0, parseInt(n) || superheroInfo.length);
+			console.log(matchedSuperheroes)
 		}
 		//console.log(matchedSuperheroes)
 		res.json(matchedSuperheroes.map(hero => hero.id));
