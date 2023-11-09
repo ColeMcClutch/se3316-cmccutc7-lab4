@@ -1,10 +1,20 @@
 //Button creations
 const search = document.getElementById('searchBar')
-const searchFilter = document.getElementById('searchDropDown')
 const searchSubmit = document.getElementById('searchSubmit')
 
-const sortFilter = document.getElementById('sortDropDown')
+//Search Buttons
+const nameSearch = document.getElementById('nameRadioSearch')
+const raceSearch = document.getElementById('raceRadioSearch')
+const publisherSearch = document.getElementById('publisherRadioSearch')
+const powerSearch = document.getElementById('powerRadioSearch')
+
+
 const sortSubmit = document.getElementById('sortSubmit')
+//Sort Buttons
+const nameSort = document.getElementById('nameRadioSort')
+const raceSort = document.getElementById('raceRadioSort')
+const publisherSort = document.getElementById('publisherRadioSort')
+const powerSort = document.getElementById('powerRadioSort')
 
 const create = document.getElementById('creator')
 const newListName = document.getElementById('newName')
@@ -50,37 +60,50 @@ try{
 // Function to fetch superheroes based on search criteria
 const searchHeroes = async () => {
     const searchText = search.value
-    const filter = searchFilter.value
+    const searchCriteria = document.querySelector('input[name="searchTopic"]:checked').value;
+    console.log(searchCriteria)
+        try{
+
+            //resets heroview
+            heroView.innerHTML=''
+
+            //Searches
+            const response = await fetch(`/api/superheroes/superhero_search?pattern=${searchText}&field=${searchCriteria}&n=${10}`);
+            if (response.ok) {
+                const dataSet = await response.json();
+                dataSet.forEach((data) => {
+                    console.log(data)
+                    const heroResponse = fetch(`/api/superheroes/superhero_combined?id=${data}`);
+                    if(heroResponse.ok){
+                        const superheroes = heroResponse.json()
+                        superheroes.forEach((hero) => {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${hero.id}</td>
+                                <td>${hero.name}</td>
+                                <td>${hero.race}</td>
+                                <td>${hero.publisher}</td>
+                                <td>${hero.power}</td>
+                            `;
     
-    try{
-        const response = await fetch(`/api/superheroes/superhero_search?pattern=${encodeURIComponent(searchText)}&field=${encodeURIComponent(filter)}&n=${800}`);
-        if (response.ok) {
-            const dataSet = await response.json();
-            dataSet.forEach((data) => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${data.id}</td>
-                    <td>${data.name}</td>
-                    <td>${data.race}</td>
-                    <td>${data.publisher}</td>
-                    <td>${data.power}</td>
-            `;
-
-            row.querySelectorAll('td').forEach(td =>{
-                td.classList.add('centered-text');
-            })
-
-            heroView.appendChild(row)
-
-            })
+                        row.querySelectorAll('td').forEach(td =>{
+                            td.classList.add('centered-text');
+                    })
+    
+                heroView.appendChild(row)
+    
             
-        } else {
-            console.error('Request failed with status:', response.status);
+                })
+            }})
+                
+            } else {
+                console.error('Request failed with status:', response.status);
+            }
+        }catch (error){
+            console.error('Error', error)
         }
-    }catch (error){
-        console.error('Error', error)
     }
-};
+      
 
 
 
@@ -96,22 +119,27 @@ searchSubmit.addEventListener('click', () => {
 
 
 // Function to fetch and sort superheroes
-const fetchAndSortSuperheroes = async (sortFilter) => {
+const SortSuperheroes = async () => {
+    const sortCriteria = document.querySelector('input[name="sortTopic"]:checked').value;
+
     try {
         const response = await fetch('/api/superheroes/superhero_info');
         if (response.ok) {
             const superheroes = await response.json();
+    
             // Sort the superheroes based on the selected filter
             superheroes.sort((a, b) => {
-                if (sortFilter === 'powers') {
+                if (sortCriteria === 'powers') {
                     // If sorting by powers, convert powers array to a string for comparison
-                    const powersA = a[sortFilter].join(', ');
-                    const powersB = b[sortFilter].join(', ');
+                    const powersA = a.powers.join(', ');
+                    const powersB = b.powers.join(', ');
                     return powersA.localeCompare(powersB);
                 } else {
-                    return a[sortFilter].localeCompare(b[sortFilter]);
+                    // Sort alphabetically based on the selected criteria (name, race, publisher)
+                    return a[sortCriteria].localeCompare(b[sortCriteria]);
                 }
             });
+    
             return superheroes;
         } else {
             console.error('Failed to fetch superheroes');
@@ -124,23 +152,11 @@ const fetchAndSortSuperheroes = async (sortFilter) => {
 };
 
 
-
-//sort functionality
-const fetchAndDisplaySuperheroes = async () => {
-    try {
-        const sort = sortFilter.value;
-        const sortedSuperheroes = await fetchAndSortSuperheroes(sort);
-        displaySuperheroes(sortedSuperheroes);
-    } catch (error) {
-        console.error('Error:', error);
-    }
-};
-
 // Handle sorting button click
 sortSubmit.addEventListener('click',  () => {
 
     //Fetch and display sorted heroes
-    fetchAndSortSuperheroes()
+    SortSuperheroes()
 }
 );
 
