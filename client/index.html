@@ -27,28 +27,53 @@
 <input type="text" id="searchBar" name="searcher" placeholder="Search By: ">
 <ul id="results1"></ul>
 
-<!--Dropdown for searching-->
-<label for="searchDropdown">Topic:     |</label>
-    <select id="searchDropdown">
-        <option value="name">Name</option>
-        <option value="race">Race</option>
-        <option value="publisher">Publisher</option>
-        <option value="Power">Power</option>
-    </select>
+<!-- Radio buttons for searching -->
+<fieldset>
+    <legend>Topic:</legend>
+  
+    <!-- Name -->
+    <label for="nameRadio">Name</label>
+    <input type="radio" id="nameRadioSearch" name="searchTopic" value="name">
+  
+    <!-- Race -->
+    <label for="raceRadio">Race</label>
+    <input type="radio" id="raceRadioSearch" name="searchTopic" value="race">
+  
+    <!-- Publisher -->
+    <label for="publisherRadio">Publisher</label>
+    <input type="radio" id="publisherRadioSearch" name="searchTopic" value="publisher">
+  
+    <!-- Power -->
+    <label for="powerRadio">Power</label>
+    <input type="radio" id="powerRadioSearch" name="searchTopic" value="power">
+  </fieldset>
 
 <!--create new list button-->
 <button type = "button" id = "searchSubmit">Submit</button>
 
 
+<!-- Radio buttons for searching -->
+<fieldset>
+    <legend>Sort By:</legend>
+  
+    <!-- Name -->
+    <label for="nameRadio">Name</label>
+    <input type="radio" id="nameRadioSort" name="sortTopic" value="name">
+  
+    <!-- Race -->
+    <label for="raceRadio">Race</label>
+    <input type="radio" id="raceRadioSort" name="sortTopic" value="Race">
+  
+    <!-- Publisher -->
+    <label for="publisherRadio">Publisher</label>
+    <input type="radio" id="publisherRadioSort" name="sortTopic" value="Publisher">
+  
+    <!-- Power -->
+    <label for="powerRadio">Power</label>
+    <input type="radio" id="powerRadioSort" name="sortTopic" value="power">
+  </fieldset>
 
-<!--Drop down for sort-->
-<label for="sortDropdown">Sort Lists by:      |</label>
-    <select id="sortDropdown">
-        <option value="name">Name</option>
-        <option value="race">Race</option>
-        <option value="publisher">Publisher</option>
-        <option value="power">Power</option>
-    </select>
+
 
 <!--create new list button-->
 <button type = "button" id = "sortSubmit">Submit</button>
