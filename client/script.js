@@ -29,6 +29,10 @@ const pubButton = document.getElementById('publisherButton')
 
 const deleteButton = document.getElementById('deleteSubmit')
 
+const addListButton = document.getElementById('addCustom')
+const deleteListButton = document.getElementById('deleteCustom')
+const customSearch = document.getElementById('customName')
+
 
 
 //Button commands
@@ -68,22 +72,18 @@ const searchHeroes = async () => {
             heroView.innerHTML=''
 
             //Searches
-            const response = await fetch(`/api/superheroes/superhero_search?pattern=${searchText}&field=${searchCriteria}&n=${10}`);
+            const response = await fetch(`/api/superheroes/combined?pattern=${searchText}&field=${searchCriteria}&n=${10}`);
             if (response.ok) {
                 const dataSet = await response.json();
                 dataSet.forEach((data) => {
-                    console.log(data)
-                    const heroResponse = fetch(`/api/superheroes/superhero_combined?id=${data}`);
-                    if(heroResponse.ok){
-                        const superheroes = heroResponse.json()
-                        superheroes.forEach((hero) => {
+                    
                             const row = document.createElement('tr');
                             row.innerHTML = `
-                                <td>${hero.id}</td>
-                                <td>${hero.name}</td>
-                                <td>${hero.race}</td>
-                                <td>${hero.publisher}</td>
-                                <td>${hero.power}</td>
+                                <td>${data.id}</td>
+                                <td>${data.name}</td>
+                                <td>${data.race}</td>
+                                <td>${data.publisher}</td>
+                                <td>${data.power}</td>
                             `;
     
                         row.querySelectorAll('td').forEach(td =>{
@@ -93,8 +93,8 @@ const searchHeroes = async () => {
                 heroView.appendChild(row)
     
             
-                })
-            }})
+            })
+            
                 
             } else {
                 console.error('Request failed with status:', response.status);
@@ -171,7 +171,6 @@ const createList = async () => {
         })
         if (response.ok) {
             newListName.textContent = ''
-            retrieveLists()
 
             const newOption = document.createElement('option')
             newOption.textContent = newListName.value
@@ -201,38 +200,53 @@ create.addEventListener('click', () => {
 
 //Function to retrieve and display favorite lists
 const retrieveLists = async () => {
-    const response = await fetch('/api/superheroes/custom-lists')
+    let listName = customSearch.value
+    const listsResponse = await fetch(`/api/superheroes/custom-Idlists/${listName}`);
     if (response.ok) {
-        const lists = await response.json()
-        listView.textContent = '';
+        const list = await listsResponse.json()
+        .then((list) => {
+            showSuperheroesInList(list)
+            return list
 
-        for(const listName in (lists)) {
-            const listElement = document.createElement('div')
-            listElement.textContent = listName
-            listElement.addEventListener('click', () => showSuperheroesInList(listName))
-            listView.appendChild(listElement)
-        }
+            
+        })      
     } else {
         console.error('Failed to retrieve lists')
     }
 }
 
+//Add hero to List button listener
+addListButton.addEventListener("click", () => {
+    let useList = retrieveLists(customSearch)
+    
+
+
+})
+
+//delete hero from List button listener
+deleteListButton.addEventListener('click', () => {
+    let useList = retrieveLists(customSearch)
+    
+
+})
+
+
 // Function to show superheroes in a selected list
 const showSuperheroesInList = async (listName) => {
     // Send a request to the backend to retrieve superhero IDs in the selected list
     try{
-    const response = await fetch(`/api/superheroes/custom-lists/${listName}/superhero-ids`)
+    const response = await fetch(`/api/superheroes/custom/${listName}`)
     if (response.ok) {
         const heroIDs = await response.json()
         const heroes = await Promise.all(
             heroIDs.map(async (superheroId) => {
-                const response = await fetch(`/api/superhero-info/${superheroId}`);
+                const response = await fetch(`/apisuperheroes/superhero-info/${superheroId}`);
                 if (response.ok) {
                     return response.json()
                 }
             })
         )
-        heroView.textContent = '';
+        heroView.innerHTML = '';
         heroes.forEach((superhero) => {
             if(superhero){
             const superheroElement = document.createElement('div');
@@ -253,43 +267,67 @@ const showSuperheroesInList = async (listName) => {
 }
 }
 
-//Initial list retrieval and display
-retrieveLists()
+//how to tell when a list has been clicked
+listView.addEventListener('click', function(event){
+    let select = deleteDrop.value
+    showSuperheroesInList(select)
 
-
-// Load and display superheroes on page load
-heroView.addEventListener('load', () => {
-    try {
-        const superheroes =  displaySuperheroes();
-        displaySuperheroes(superheroes);
-    } catch (error) {
-        console.error('Error:', error);
-    }
 });
 
-// Function to display all the created lists
-function displayAllLists() {
-    // Send a request to the backend to retrieve all created lists
-    fetch(`/api/custom-lists`)
-        .then(response => response.json())
-        .then(lists => {
-            listView.textContent = ''; // Clear previous list
-            if (lists.length > 0) {
-                lists.forEach(list => {
-                    const listElement = document.createElement('div');
-                    listElement.textContent = `
-              <h2>${list.name}</h2>
-              <p>Description: ${list.description}</p>`;
-                    listView.appendChild(listElement);
-                });
-            } else {
-                listView.textContent = 'No lists have been created yet.';
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-        });
-}
+//how to tell when a list has been clicked
+addListButton.addEventListener('click', function(event){
+    let select = deleteDrop.value
+    let searchText = search.value
+    heroView.innerHTML=''
+    let useList = retrieveLists(select)
+    try{
+        const response =  fetch(`/api/superheroes/superhero_search?pattern=${searchText}&field=${searchCriteria}&n=${10}`);
+        if (response.ok){
+            const dataSet = response.json()
+            dataSet.forEach((data) => {
+                const result = fetch(`/api/superheroes/superhero_combined/${data}`);
+                const row = document.createElement('tr')
+                row.innerHTML = `
+                <td>${result.id}</td>
+                <td>${result.name}</td>
+                <td>${result.race}</td>
+                <td>${result.publisher}</td>
+                <td>${result.power}</td>
+                `;
+                heroView.appendChild(row)
+            })
+        }
+    
+
+   
+    }catch (error) {
+        console.error('Error:', error);
+    }
+})
+
+//how to tell when a list has been clicked
+deleteListButton.addEventListener('click', function(event){
+    let select = deleteDrop.value
+    let useList = retrieveLists(select)
+    try{
+        const response =  fetch(`/api/superheroes/superhero_search?pattern=${searchText}&field=${searchCriteria}&n=${10}`);
+        if (response.ok){
+            const dataSet = response.json()
+            dataSet.forEach((data) => {
+                const result = fetch(`/api/superheroes/superhero_combined/${data}`);
+                
+                heroView.remove()
+            })
+        }
+    
+
+   
+    }catch (error) {
+        console.error('Error:', error);
+    }
+    
+    
+});
 
 
 //function to delete lists
@@ -317,10 +355,3 @@ deleteButton.addEventListener('click',() => {
     deleteLists()
 })
 
-
-
-//Display lists immediately
-displayAllLists()
-
-//Display all superheroes
-fetchAndDisplaySuperheroes()
