@@ -72,7 +72,7 @@ const searchHeroes = async () => {
             heroView.innerHTML=''
 
             //Searches
-            const response = await fetch(`/api/superheroes/combined?pattern=${searchText}&field=${searchCriteria}&n=${10}`);
+            const response = await fetch(`/api/superheroes/search_and_combined?pattern=${searchText}&field=${searchCriteria}&n=${50}`);
             if (response.ok) {
                 const dataSet = await response.json();
                 dataSet.forEach((data) => {
@@ -81,28 +81,27 @@ const searchHeroes = async () => {
                             row.innerHTML = `
                                 <td>${data.id}</td>
                                 <td>${data.name}</td>
-                                <td>${data.race}</td>
-                                <td>${data.publisher}</td>
+                                <td>${data.Race}</td>
+                                <td>${data.Publisher}</td>
                                 <td>${data.power}</td>
                             `;
     
-                        row.querySelectorAll('td').forEach(td =>{
-                            td.classList.add('centered-text');
+                            row.querySelectorAll('td').forEach(td =>{
+                                td.classList.add('centered-text');
+                            })
+                            heroView.appendChild(row)
                     })
-    
-                heroView.appendChild(row)
-    
-            
-            })
-            
                 
-            } else {
-                console.error('Request failed with status:', response.status);
+               
+                }
+            
+            }catch (error){
+                console.error('Error', error)
             }
-        }catch (error){
-            console.error('Error', error)
+            
+           
         }
-    }
+    
       
 
 
@@ -116,47 +115,27 @@ searchSubmit.addEventListener('click', () => {
 });
 
 
-
-
-// Function to fetch and sort superheroes
-const SortSuperheroes = async () => {
-    const sortCriteria = document.querySelector('input[name="sortTopic"]:checked').value;
-
-    try {
-        const response = await fetch('/api/superheroes/superhero_info');
-        if (response.ok) {
-            const superheroes = await response.json();
-    
-            // Sort the superheroes based on the selected filter
-            superheroes.sort((a, b) => {
-                if (sortCriteria === 'powers') {
-                    // If sorting by powers, convert powers array to a string for comparison
-                    const powersA = a.powers.join(', ');
-                    const powersB = b.powers.join(', ');
-                    return powersA.localeCompare(powersB);
-                } else {
-                    // Sort alphabetically based on the selected criteria (name, race, publisher)
-                    return a[sortCriteria].localeCompare(b[sortCriteria]);
-                }
-            });
-    
-            return superheroes;
-        } else {
-            console.error('Failed to fetch superheroes');
-            return [];
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        return [];
-    }
-};
-
-
 // Handle sorting button click
 sortSubmit.addEventListener('click',  () => {
+    const sortCriteria = document.querySelector('input[name="sortTopic"]:checked').value;
+    console.log(sortCriteria)
+    const rows = Array.from(heroView.rows);
+            rows.shift(); // Remove the header row
 
-    //Fetch and display sorted heroes
-    SortSuperheroes()
+            rows.sort((row1, row2) => {
+                const cell1 = row1.cells[sortCriteria].textContent.trim().toLowerCase();
+                const cell2 = row2.cells[sortCriteria].textContent.trim().toLowerCase();
+
+                return cell1.localeCompare(cell2);
+            });
+
+            while (heroView.rows.length > 1) {
+                heroView.deleteRow(1);
+            }
+
+            rows.forEach((row) => {
+                heroView.tBodies[0].appendChild(row);
+            });
 }
 );
 
@@ -215,22 +194,6 @@ const retrieveLists = async () => {
     }
 }
 
-//Add hero to List button listener
-addListButton.addEventListener("click", () => {
-    let useList = retrieveLists(customSearch)
-    
-
-
-})
-
-//delete hero from List button listener
-deleteListButton.addEventListener('click', () => {
-    let useList = retrieveLists(customSearch)
-    
-
-})
-
-
 // Function to show superheroes in a selected list
 const showSuperheroesInList = async (listName) => {
     // Send a request to the backend to retrieve superhero IDs in the selected list
@@ -274,25 +237,24 @@ listView.addEventListener('click', function(event){
 
 });
 
-//how to tell when a list has been clicked
+//how to add superheroes to a list
 addListButton.addEventListener('click', function(event){
     let select = deleteDrop.value
     let searchText = search.value
     heroView.innerHTML=''
     let useList = retrieveLists(select)
     try{
-        const response =  fetch(`/api/superheroes/superhero_search?pattern=${searchText}&field=${searchCriteria}&n=${10}`);
+        const response =  fetch(`/api/superheroes/search_and_combined?pattern=${searchText}&field=${searchCriteria}&n=${10}`);
         if (response.ok){
             const dataSet = response.json()
             dataSet.forEach((data) => {
-                const result = fetch(`/api/superheroes/superhero_combined/${data}`);
                 const row = document.createElement('tr')
                 row.innerHTML = `
-                <td>${result.id}</td>
-                <td>${result.name}</td>
-                <td>${result.race}</td>
-                <td>${result.publisher}</td>
-                <td>${result.power}</td>
+                <td>${data.id}</td>
+                <td>${data.name}</td>
+                <td>${data.race}</td>
+                <td>${data.publisher}</td>
+                <td>${data.power}</td>
                 `;
                 heroView.appendChild(row)
             })
@@ -305,17 +267,18 @@ addListButton.addEventListener('click', function(event){
     }
 })
 
-//how to tell when a list has been clicked
+//how to delete superheroes from a list
 deleteListButton.addEventListener('click', function(event){
     let select = deleteDrop.value
     let useList = retrieveLists(select)
     try{
-        const response =  fetch(`/api/superheroes/superhero_search?pattern=${searchText}&field=${searchCriteria}&n=${10}`);
+        const response =  fetch(`/api/superheroes/search_and_combined?pattern=${searchText}&field=${searchCriteria}&n=${1}`);
         if (response.ok){
             const dataSet = response.json()
             dataSet.forEach((data) => {
-                const result = fetch(`/api/superheroes/superhero_combined/${data}`);
                 
+
+
                 heroView.remove()
             })
         }
