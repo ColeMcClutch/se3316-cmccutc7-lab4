@@ -84,5 +84,21 @@ body{
 }
 
 .centered-text {
-    text-align: center;
+    text-align: left;
 }
+
+.cellTitles{
+    display: flex;
+    gap: 300px; 
+}
+
+.secondCells{
+    gap: 400px;
+    display: flex;
+}
+
+.thirdCells{
+    display: flex;
+    gap: 400px;
+}
+

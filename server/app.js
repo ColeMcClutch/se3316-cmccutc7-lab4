@@ -75,10 +75,7 @@ app.get('/api/superheroes/superhero_powers/:id', (req, res) => {
 
 //Info and power  combination 
 app.get('/api/superheroes/superhero_combined/:id', (req, res) => {
-
-
 	try {
-
  		const superhero = superheroInfo.find((hero) => hero.id == req.params.id);
 		 if (!superhero) {
 			res.status(404).send("Superhero not found");
@@ -92,19 +89,14 @@ app.get('/api/superheroes/superhero_combined/:id', (req, res) => {
 			if(value.hero_names == name){
 				power = value
 			}
-
 		}
-
 		for (const [key, value] of Object.entries(power)) {
 			if (value === "True") {
 				superhero[key] = value
 			}
 		}
-
 		res.status(200).send(superhero)
-
 	}
-
 	catch{
 		res.status(500).json({ error: 'Failed to fetch superhero powers' });
 	}
@@ -144,9 +136,15 @@ app.get('/api/superheroes/search_and_combined', async (req, res) => {
             const superhero = superheroInfo.find((hero) => hero.id == id);
             if (superhero) {
                 const name = superhero.name;
-                const matchingPowers = superheroPowers.filter((power) => power.hero_names == name);
-                superhero.powers = matchingPowers.map((power) => power.power_name);
-                combinedSuperheroes.push(superhero);
+                let matchingPowers = superheroPowers.filter((power) => power.hero_names == name);
+				if (matchingPowers && matchingPowers.length > 0) {
+					matchingPowers = matchingPowers.map((power) => power[0]);
+					superhero.powers = Object.entries(matchingPowers[0]).map((power) => power[1] === "True");
+					combinedSuperheroes.push(superhero);
+				} else {
+					console.error(`No matching powers found for superhero with name: ${name}`);
+				}
+				
             }
         }
 
