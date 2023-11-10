@@ -73,7 +73,7 @@ app.get('/api/superheroes/superhero_powers/:id', (req, res) => {
 });
 
 
-
+//Info and power  combination 
 app.get('/api/superheroes/superhero_combined/:id', (req, res) => {
 
 
@@ -109,6 +109,53 @@ app.get('/api/superheroes/superhero_combined/:id', (req, res) => {
 		res.status(500).json({ error: 'Failed to fetch superhero powers' });
 	}
 })
+
+
+
+app.get('/api/superheroes/search_and_combined', async (req, res) => {
+    try {
+        const { field, pattern, n } = req.query;
+
+        // Search for superheroes based on field and pattern
+        const regexPattern = new RegExp(pattern, 'i');
+        const filteredSuperheroes = superheroInfo.filter((hero) => {
+            if (field === "power") {
+                for (const power of superheroPowers) {
+                    for (const key in power) {
+                        if (regexPattern.test(key) && power[key] === "True") {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            } else {
+                return regexPattern.test(hero[field]);
+            }
+        });
+
+        const matchedSuperheroes = filteredSuperheroes.slice(0, parseInt(n));
+
+        // Collect the IDs of matched superheroes
+        const superheroIds = matchedSuperheroes.map((hero) => hero.id);
+
+        // Combine superhero info and powers for each ID
+        const combinedSuperheroes = [];
+        for (const id of superheroIds) {
+            const superhero = superheroInfo.find((hero) => hero.id == id);
+            if (superhero) {
+                const name = superhero.name;
+                const matchingPowers = superheroPowers.filter((power) => power.hero_names == name);
+                superhero.powers = matchingPowers.map((power) => power.power_name);
+                combinedSuperheroes.push(superhero);
+            }
+        }
+
+        res.json(combinedSuperheroes);
+    } catch (error) {
+        console.error('Error searching and combining superheroes:', error);
+        res.status(500).json({ error: 'Failed to search and combine superheroes' });
+    }
+});
 
 
 
