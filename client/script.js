@@ -58,7 +58,6 @@ try{
 
 
 
-//EDIT CODE FROM HERE
 
 //search
 // Function to fetch superheroes based on search criteria
@@ -269,6 +268,7 @@ deleteListButton.addEventListener('click', function(event){
         if (response.ok){
             const dataSet = response.json()
             dataSet.forEach((data) => {
+
                 heroView.remove(data)
             })
         }
