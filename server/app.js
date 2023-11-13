@@ -54,18 +54,10 @@ app.get('/api/superheroes/search_and_combined', async (req, res) => {
         // Search for superheroes based on field and pattern
         const regexPattern = new RegExp(pattern, 'i');
         const filteredSuperheroes = superheroInfo.filter((hero) => {
-            if (field === "power" || field === "race" || field === "publisher") {
+            if (field === "power") {
                 for (const power of superheroPowers) {
-                    if (power.hero_names === hero.name) {
-                        // Filter the powers based on the pattern
-                        const matchingPowers = Object.entries(power)
-                            .filter(([key, value]) => regexPattern.test(key) && value === "True")
-                            .map(([key]) => key);
-
-                        if (matchingPowers.length > 0) {
-                            hero.powers = Object.entries(power)
-                                .filter(([key, value]) => value === "True")
-                                .map(([key]) => key);
+                    for (const key in power) {
+                        if (regexPattern.test(key) && power[key] === "True") {
                             return true;
                         }
                     }
@@ -78,7 +70,29 @@ app.get('/api/superheroes/search_and_combined', async (req, res) => {
 
         const matchedSuperheroes = filteredSuperheroes.slice(0, parseInt(n));
 
-        res.json(matchedSuperheroes);
+        // Collect the IDs of matched superheroes
+        const superheroIds = matchedSuperheroes.map((hero) => hero.id);
+
+        // Combine superhero info and powers for each ID
+        const combinedSuperheroes = [];
+        for (const id of superheroIds) {
+            const superhero = superheroInfo.find((hero) => hero.id == id);
+            if (superhero) {
+                const name = superhero.name;
+                let matchingPowers = superheroPowers.filter((power) => power.hero_names == name);
+				if (matchingPowers && matchingPowers.length > 0) {
+					superhero.power = Object.entries(matchingPowers[0]).filter(([, value]) => value === "True");
+					combinedSuperheroes.push(superhero);
+				} else {
+					superhero.power = 'None'
+					combinedSuperheroes.push(superhero)
+					console.error(`No matching powers found for superhero with name: ${name}`);
+				}
+				
+            }
+        }
+
+        res.json(combinedSuperheroes);
     } catch (error) {
         console.error('Error searching and combining superheroes:', error);
         res.status(500).json({ error: 'Failed to search and combine superheroes' });
@@ -235,16 +249,10 @@ app.get('/api/superheroes/c-l/:listName/superheroes', (req, res) => {
 
 		superheroIds.forEach(element => {
 			const elementHeroInfo = superheroInfo.find((hero) => hero.id == element);
-			const elementHeroPowers2 = []
 			const elementHeroPowers = superheroPowers.find((power) => power.hero_names == elementHeroInfo.name);
-			if (elementHeroPowers && elementHeroPowers.length > 0) {
-				elementHeroPowers2 = Object.entries(elementHeroPowers[0]).filter(([, value]) => value === "True");
-				
-			} else {
-				console.error(`No powers detected`);
-			}
+			
 
-			elementHeroInfo.powers = elementHeroPowers2;
+			elementHeroInfo.powers = elementHeroPowers;
 
 			heroArray.push(elementHeroInfo);
 		});
