@@ -244,20 +244,13 @@ addListButton.addEventListener('click', function(event){
     heroView.innerHTML=''
     let useList = retrieveLists(select)
     try{
-        const response =  fetch(`/api/superheroes/search_and_combined?pattern=${searchText}&field=${searchCriteria}&n=${10}`);
-        if (response.ok){
-            const dataSet = response.json()
-            dataSet.forEach((data) => {
-                const row = document.createElement('tr')
-                row.innerHTML = `
-                <td>${data.id}</td>
-                <td>${data.name}</td>
-                <td>${data.race}</td>
-                <td>${data.publisher}</td>
-                <td>${data.power}</td>
-                `;
-                heroView.appendChild(row)
+        const response = fetch(`/api/superheroes/custom-Idlists/${useList}`);
+        if(response.ok){
+            const input = response.json
+            input.forEach((data) => {
+                useList.add(data)
             })
+
         }
     
 
@@ -276,10 +269,7 @@ deleteListButton.addEventListener('click', function(event){
         if (response.ok){
             const dataSet = response.json()
             dataSet.forEach((data) => {
-                
-
-
-                heroView.remove()
+                heroView.remove(data)
             })
         }
     

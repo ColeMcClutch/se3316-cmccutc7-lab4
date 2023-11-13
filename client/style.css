@@ -89,16 +89,7 @@ body{
 
 .cellTitles{
     display: flex;
-    gap: 300px; 
+    gap: 30px; 
 }
 
-.secondCells{
-    gap: 400px;
-    display: flex;
-}
-
-.thirdCells{
-    display: flex;
-    gap: 400px;
-}
 
