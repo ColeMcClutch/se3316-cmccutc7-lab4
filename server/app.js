@@ -13,8 +13,8 @@ const port = 3000;
 
 app.use(express.static('client'));
 
-const superheroInfo = require("https://fasatest.sirv.com/superheroes/superhero_info.json")
-const superheroPowers = require("https://fasatest.sirv.com/superheroes/superhero_powers.json")
+const superheroInfo = "https://fasatest.sirv.com/superheroes/superhero_info.json"
+const superheroPowers ="https://fasatest.sirv.com/superheroes/superhero_powers.json"
 
 
 // Set up middleware for security
