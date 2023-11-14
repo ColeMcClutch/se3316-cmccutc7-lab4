@@ -4,7 +4,7 @@ const rateLimit = require('express-rate-limit')
 const helmet = require('helmet')
 
 // Prepare Storage
-const store = new nodeStorage("superheroes/lists.json");
+const store = new nodeStorage("https://fasatest.sirv.com/superheroes/lists.json");
 
 //Express application
 const express = require('express');
