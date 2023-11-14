@@ -11,7 +11,7 @@ const express = require('express');
 const app = express();
 const port = 3000;
 
-app.use(express.static('client'));
+app.use(express.static('../client'));
 
 const superheroInfo = require('./superheroes/superhero_info.json')
 const superheroPowers =require('./superheroes/superhero_powers.json')
