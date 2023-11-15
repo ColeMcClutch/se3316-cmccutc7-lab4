@@ -240,17 +240,23 @@ listView.addEventListener('click', function(event){
 addListButton.addEventListener('click', function(event){
     let select = deleteDrop.value
     let searchText = search.value
-    heroView.innerHTML=''
+    const searchCriteria = document.querySelector('input[name="searchTopic"]:checked').value;
     let useList = retrieveLists(select)
     try{
-        const response = fetch(`/api/superheroes/custom-Idlists/${useList}`);
+        const response = fetch(`/api/superheroes/search_and_combined?pattern=${searchText}&field=${searchCriteria}&n=${1}`);
         if(response.ok){
-            const input = response.json
-            input.forEach((data) => {
-                useList.add(data)
-            })
+            const result = response.json()
+            addResults(useList, result)
+            const row = document.createElement('tr')
+            row.innerHTML = `
+                <h3>${result.name}</h3>
+                <p>Race: ${result.Race}</p>
+                <p>Publisher: ${result.Publisher}</p>
+                <p>Powers: ${result.power.join(', ')}</p>
+                `;
 
         }
+
     
 
    
@@ -259,7 +265,21 @@ addListButton.addEventListener('click', function(event){
     }
 })
 
-//how to delete superheroes from a list
+
+//AddResults method
+const addResults = async (listname, result) => {
+    try{
+        const response = fetch(`/api/superheroes/custom-Idlists?listName=${listname}&superheroIds=${result}`);
+        const listTab = (await response).json()
+        return listTab
+
+
+    }catch (error) {
+    console.error('Error:', error);
+    }
+}
+
+//how to delete superheroes from a list 
 deleteListButton.addEventListener('click', function(event){
     let select = deleteDrop.value
     let useList = retrieveLists(select)
@@ -267,10 +287,9 @@ deleteListButton.addEventListener('click', function(event){
         const response =  fetch(`/api/superheroes/search_and_combined?pattern=${searchText}&field=${searchCriteria}&n=${1}`);
         if (response.ok){
             const dataSet = response.json()
-            dataSet.forEach((data) => {
+            const removal = deleteHeroes(useList, dataSet)
+            useList.remove(removal)
 
-                heroView.remove(data)
-            })
         }
     
 
@@ -281,6 +300,19 @@ deleteListButton.addEventListener('click', function(event){
     
     
 });
+
+
+//delete heroes method 
+const deleteHeroes = async (listName, result) =>{
+    try{
+        const response = fetch(`/api/superheroes/superhero_search/listName=${listName}&superheroIds=${result}`);
+        const listTab = (await response).json()
+        return listTab
+
+    }catch (error) {
+    console.error('Error:', error);
+    }
+}
 
 
 //function to delete lists
