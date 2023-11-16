@@ -92,4 +92,24 @@ body{
     gap: 30px; 
 }
 
+#LoginScreen{
+    display: flex
+}
 
+#signUp{
+    background-color: blue;
+    color: white;
+    border: 1px solid;
+}
+
+#logIn{
+    background-color: blue;
+    color: white;
+    border: 1px solid;
+}
+
+#logOut{
+    background-color: blue;
+    color: white;
+    border: 1px solid;
+}
