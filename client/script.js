@@ -34,6 +34,15 @@ const deleteListButton = document.getElementById('deleteCustom')
 const customSearch = document.getElementById('customName')
 
 
+//Login controls
+const usernameText = document.getElementById('userName')
+const passwordText = document.getElementById('passWord')
+const signUp = document.getElementById('signUp')
+const logOut = document.getElementById('logOut')
+const logIn = document.getElementById('logIn')
+
+
+
 
 //Button commands
 
@@ -287,8 +296,7 @@ deleteListButton.addEventListener('click', function(event){
         const response =  fetch(`/api/superheroes/search_and_combined?pattern=${searchText}&field=${searchCriteria}&n=${1}`);
         if (response.ok){
             const dataSet = response.json()
-            const removal = deleteHeroes(useList, dataSet)
-            useList.remove(removal)
+            deleteHeroes(useList, dataSet)
 
         }
     
@@ -307,6 +315,7 @@ const deleteHeroes = async (listName, result) =>{
     try{
         const response = fetch(`/api/superheroes/superhero_search/listName=${listName}&superheroIds=${result}`);
         const listTab = (await response).json()
+        listName.remove(listTab)
         return listTab
 
     }catch (error) {
