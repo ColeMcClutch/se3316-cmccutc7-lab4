@@ -264,6 +264,40 @@ app.get('/api/superheroes/c-l/:listName/superheroes', (req, res) => {
 	}
 })
 
+
+//Login/Authentication
+// Sample user data (replace this with a database in a real-world scenario)
+const users = [
+    { id: 1, email: 'j87126681@gmail.com', password: 'ousuwdfgwetbmjvz', nickname: 'j87126681', disabled: false },
+];
+
+nev.configure({
+    verificationURL: 'https://manage.auth0.com/dashboard/us/dev-xgourjo7ys7gjx4b/profile',
+    persistentUserModel: users,
+    tempUserCollection: 'myawesomewebsite_tempusers',
+ 
+    transportOptions: {
+        service: 'Gmail',
+        auth: {
+            user: 'j87126681@gmail.com',
+            pass: 'ousuwdfgwetbmjvz'
+        }
+    },
+    verifyMailOptions: {
+        from: 'Do Not Reply <myawesomeemail_do_not_reply@gmail.com>',
+        subject: 'Please confirm account',
+        html: 'Click the following link to confirm your account:</p><p>${https://manage.auth0.com/dashboard/us/dev-xgourjo7ys7gjx4b/profile}</p>',
+        text: 'Please confirm your account by clicking the following link: ${https://manage.auth0.com/dashboard/us/dev-xgourjo7ys7gjx4b/profile}'
+    }
+}, function(error, options){
+});
+
+
+
+
+
+
+
 //Get all lists
 app.get('/api/superheroes/allLists', (req, res) => {
 	res.send(store.get("lists"));
