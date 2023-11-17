@@ -271,26 +271,28 @@ const users = [
     { id: 1, email: 'j87126681@gmail.com', password: 'ousuwdfgwetbmjvz', nickname: 'j87126681', disabled: false },
 ];
 
-nev.configure({
-    verificationURL: 'https://manage.auth0.com/dashboard/us/dev-xgourjo7ys7gjx4b/profile',
-    persistentUserModel: users,
-    tempUserCollection: 'myawesomewebsite_tempusers',
- 
-    transportOptions: {
-        service: 'Gmail',
-        auth: {
-            user: 'j87126681@gmail.com',
-            pass: 'ousuwdfgwetbmjvz'
-        }
-    },
-    verifyMailOptions: {
-        from: 'Do Not Reply <myawesomeemail_do_not_reply@gmail.com>',
-        subject: 'Please confirm account',
-        html: 'Click the following link to confirm your account:</p><p>${https://manage.auth0.com/dashboard/us/dev-xgourjo7ys7gjx4b/profile}</p>',
-        text: 'Please confirm your account by clicking the following link: ${https://manage.auth0.com/dashboard/us/dev-xgourjo7ys7gjx4b/profile}'
-    }
-}, function(error, options){
-});
+// Endpoint to create a new user account
+app.post('/api/signup', (req, res) => {
+	const { email, password, nickname } = req.body;
+  
+	// Input validation for email format
+	const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+	if (!emailRegex.test(email)) {
+	  return res.status(400).json({ error: 'Invalid email format' });
+	}
+  
+	// Check if email is already registered
+	if (store.get(email)) {
+	  return res.status(400).json({ error: 'Email already registered' });
+	}
+  
+	// Store user data in the in-memory store
+	store.set(email, { password, nickname, verified: false, disabled: false });
+  
+	// Send verification email (you can implement this part using nodemailer or a similar library)
+  
+	res.json({ message: 'Account created successfully. Please check your email for verification.' });
+  });
 
 
 
