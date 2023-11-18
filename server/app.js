@@ -266,37 +266,63 @@ app.get('/api/superheroes/c-l/:listName/superheroes', (req, res) => {
 
 
 //Login/Authentication
-// Sample user data (replace this with a database in a real-world scenario)
-const users = [
-    { id: 1, email: 'j87126681@gmail.com', password: 'ousuwdfgwetbmjvz', nickname: 'j87126681', disabled: false },
-];
-
-// Endpoint to create a new user account
-app.post('/api/signup', (req, res) => {
+// User registration endpoint
+app.post('/api/register', (req, res) => {
 	const { email, password, nickname } = req.body;
   
 	// Input validation for email format
-	const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-	if (!emailRegex.test(email)) {
+	if (!isValidEmail(email)) {
 	  return res.status(400).json({ error: 'Invalid email format' });
 	}
   
 	// Check if email is already registered
-	if (store.get(email)) {
+	if (getUserByEmail(email)) {
 	  return res.status(400).json({ error: 'Email already registered' });
 	}
   
-	// Store user data in the in-memory store
-	store.set(email, { password, nickname, verified: false, disabled: false });
+	// Create user object and store in the database
+	const user = { email, password, nickname, disabled: false };
+	store.set(email, user);
   
-	// Send verification email (you can implement this part using nodemailer or a similar library)
-  
-	res.json({ message: 'Account created successfully. Please check your email for verification.' });
+	res.status(201).json({ message: 'User registered successfully' });
   });
-
-
-
-
+  
+  // User login endpoint
+  app.post('/api/login', (req, res) => {
+	const { email, password } = req.body;
+  
+	// Retrieve user from the database
+	const user = getUserByEmail(email);
+  
+	// Check if the user exists
+	if (!user) {
+	  return res.status(401).json({ error: 'Invalid credentials' });
+	}
+  
+	// Check if the account is disabled
+	if (user.disabled) {
+	  return res.status(401).json({ error: 'Account is disabled. Contact the site administrator.' });
+	}
+  
+	// Check if the password is correct
+	if (user.password !== password) {
+	  return res.status(401).json({ error: 'Invalid credentials' });
+	}
+  
+	res.status(200).json({ message: 'Login successful' });
+  });
+  
+  // Function to validate email format
+  function isValidEmail(email) {
+	// Use a regular expression for basic email format validation
+	const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+	return emailRegex.test(email);
+  }
+  
+  // Function to retrieve user by email from the database
+  function getUserByEmail(email) {
+	return store.get(email);
+  }
 
 
 
