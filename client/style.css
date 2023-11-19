@@ -32,12 +32,6 @@ body{
     display: flex;
 }
 
-.sortBar{
-    background-color: white;
-    right: 40px;
-    display: flex;
-}
-
 
 
 #heroView{
