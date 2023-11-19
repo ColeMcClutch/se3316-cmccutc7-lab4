@@ -288,7 +288,7 @@ app.post('/api/register', (req, res) => {
 	}
   
 	// Add user to the store
-	const user = { email, password, nickname, disabled: false };
+	const user  = { email, password, nickname, disabled: false };
 	store.push(user);
   
 	// Send verification email (in a real-world scenario, you would send an email with a verification link)
@@ -311,6 +311,7 @@ app.post('/api/register', (req, res) => {
 	}
   
 	// Perform email verification steps here
+
   
 	res.json({ message: 'Email verified successfully' });
   });
@@ -339,7 +340,12 @@ app.post('/api/register', (req, res) => {
   });
   
 
+//Account disabling
+app.post('/api/disable', (req,res) => {
+	const user = store.find(user => user.email === email)
 
+
+})
 
 
 
