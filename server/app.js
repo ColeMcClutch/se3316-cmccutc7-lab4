@@ -2,6 +2,7 @@
 const nodeStorage = require('node-storage')
 const rateLimit = require('express-rate-limit')
 const helmet = require('helmet')
+const validator = require('validator');
 
 // Prepare Storage
 const store = new nodeStorage("superheroes/lists.json");
@@ -266,63 +267,80 @@ app.get('/api/superheroes/c-l/:listName/superheroes', (req, res) => {
 
 
 //Login/Authentication
-// User registration endpoint
+
+// Local authentication mechanism - Create an account
 app.post('/api/register', (req, res) => {
 	const { email, password, nickname } = req.body;
+
+	// Check if email is present and is a string
+	if (!email || typeof email !== 'string') {
+		return res.status(400).json({ error: 'Invalid email format' });
+  	}
   
-	// Input validation for email format
-	if (!isValidEmail(email)) {
+	// Input validation for email
+	if (!validator.isEmail(email)) {
 	  return res.status(400).json({ error: 'Invalid email format' });
 	}
   
 	// Check if email is already registered
-	if (getUserByEmail(email)) {
+	if (store.some(user => user.email === email)) {
 	  return res.status(400).json({ error: 'Email already registered' });
 	}
   
-	// Create user object and store in the database
+	// Add user to the store
 	const user = { email, password, nickname, disabled: false };
-	store.set(email, user);
+	store.push(user);
   
-	res.status(201).json({ message: 'User registered successfully' });
+	// Send verification email (in a real-world scenario, you would send an email with a verification link)
+  
+	res.status(201).json({ message: `Account created successfully with ${email} . Welcome ${nickname}` });
+});
+
+
+
+
+  
+  // Verification of email (In a real-world scenario, this would involve sending a verification link)
+  app.post('/api/verify-email', (req, res) => {
+	const { email } = req.body;
+  
+	const user = store.find(user => user.email === email);
+  
+	if (!user) {
+	  return res.status(404).json({ error: 'User not found' });
+	}
+  
+	// Perform email verification steps here
+  
+	res.json({ message: 'Email verified successfully' });
   });
+
+
+
+
+
   
-  // User login endpoint
+  // Local authentication mechanism - Login
   app.post('/api/login', (req, res) => {
 	const { email, password } = req.body;
   
-	// Retrieve user from the database
-	const user = getUserByEmail(email);
+	const user = store.find(user => user.email === email);
   
-	// Check if the user exists
-	if (!user) {
-	  return res.status(401).json({ error: 'Invalid credentials' });
+	if (!user || user.disabled) {
+	  return res.status(401).json({ error: 'Invalid credentials or account disabled' });
 	}
   
-	// Check if the account is disabled
-	if (user.disabled) {
-	  return res.status(401).json({ error: 'Account is disabled. Contact the site administrator.' });
-	}
-  
-	// Check if the password is correct
+	// In a real-world scenario, you would compare hashed passwords here
 	if (user.password !== password) {
 	  return res.status(401).json({ error: 'Invalid credentials' });
 	}
   
-	res.status(200).json({ message: 'Login successful' });
+	res.json({ message: 'Login successful' });
   });
   
-  // Function to validate email format
-  function isValidEmail(email) {
-	// Use a regular expression for basic email format validation
-	const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-	return emailRegex.test(email);
-  }
-  
-  // Function to retrieve user by email from the database
-  function getUserByEmail(email) {
-	return store.get(email);
-  }
+
+
+
 
 
 
