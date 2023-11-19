@@ -60,6 +60,7 @@ signUp.addEventListener('click', () => {
 
 //login
 logIn.addEventListener('click', () => {
+try{
     const response = fetch(`/api/login?email=${emailText}&password=${passwordText}`)
     if(response.ok){
         loginScreen.innerHTML=''
@@ -70,7 +71,14 @@ logIn.addEventListener('click', () => {
         loginScreen.appendChild(profile)
 
 
+    }else{
+        const incorrect = document.createElement('p')
+        incorrect.textContent = 'No account exists'
+        loginScreen.appendChild(incorrect)
     }
+}catch (error){
+    console.error('Error: ', error);
+}
 })
 
 
