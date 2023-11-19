@@ -35,16 +35,52 @@ const customSearch = document.getElementById('customName')
 
 
 //Login controls
+const emailText = document.getElementById('email')
 const usernameText = document.getElementById('userName')
 const passwordText = document.getElementById('passWord')
 const signUp = document.getElementById('signUp')
 const logOut = document.getElementById('logOut')
 const logIn = document.getElementById('logIn')
+const loginScreen = document.getElementById('loginScreen')
 
 
 
 
 //Button commands
+//register
+signUp.addEventListener('click', () => {
+    const response = fetch(`/api/register?email=${emailText}&password=${passwordText}&nickname=${usernameText}`);
+    if(response.ok){
+        const logData = response.json()
+        alert(`New Account Added! Welcome ${usernameText}! You may login now`);
+    }
+})
+
+
+
+//login
+logIn.addEventListener('click', () => {
+    const response = fetch(`/api/login?email=${emailText}&password=${passwordText}`)
+    if(response.ok){
+        loginScreen.innerHTML=''
+        // Create a new paragraph element
+        const profile = document.createElement('p');
+        // Set the text content of the paragraph
+        profile.textContent = `Welcome ${usernameText}!`;
+        loginScreen.appendChild(profile)
+
+
+    }
+})
+
+
+
+//logout
+logOut.addEventListener('click', () => {
+    
+})
+
+
 
 //publisher button
 pubButton.addEventListener('click', () => {
@@ -121,32 +157,6 @@ searchSubmit.addEventListener('click', () => {
     searchHeroes()
 
 });
-
-
-// Handle sorting button click
-sortSubmit.addEventListener('click',  () => {
-    const sortCriteria = document.querySelector('input[name="sortTopic"]:checked').value;
-    console.log(sortCriteria)
-    const rows = Array.from(heroView.rows);
-            rows.shift(); // Remove the header row
-
-            rows.sort((row1, row2) => {
-                const cell1 = row1.cells[sortCriteria].textContent.trim().toLowerCase();
-                const cell2 = row2.cells[sortCriteria].textContent.trim().toLowerCase();
-
-                return cell1.localeCompare(cell2);
-            });
-
-            while (heroView.rows.length > 1) {
-                heroView.deleteRow(1);
-            }
-
-            rows.forEach((row) => {
-                heroView.tBodies[0].appendChild(row);
-            });
-}
-);
-
 
 
 //Function for creating new  list
