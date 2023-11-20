@@ -3,9 +3,12 @@ const nodeStorage = require('node-storage')
 const rateLimit = require('express-rate-limit')
 const helmet = require('helmet')
 const validator = require('validator');
+const bodyParser = require('body-parser');
+
 
 // Prepare Storage
 const store = new nodeStorage("superheroes/lists.json");
+const users = new nodeStorage("users/users.json")
 
 //Express application
 const express = require('express');
@@ -23,6 +26,8 @@ app.use(helmet()); // Helmet helps secure your Express apps by setting various H
 app.use(express.json()); // Parse JSON request bodies
 // Setting up front-end code
 app.use('/', express.static('../client'));
+app.use(bodyParser.urlencoded({ extended: true })); // Parse URL-encoded bodies
+
 
 // Implement rate limiting to prevent abuse
 const apiLimiter = rateLimit({
@@ -270,54 +275,39 @@ app.get('/api/superheroes/c-l/:listName/superheroes', (req, res) => {
 
 // Local authentication mechanism - Create an account
 app.post('/api/register', (req, res) => {
-	const { email, password, nickname } = req.body;
+try{
+	const { email, password, nickname } = req.query;
 
 	// Check if email is present and is a string
+
+	console.log(email)
 	if (!email || typeof email !== 'string') {
 		return res.status(400).json({ error: 'Invalid email format' });
   	}
   
 	// Input validation for email
 	if (!validator.isEmail(email)) {
-	  return res.status(400).json({ error: 'Invalid email format' });
+	  return res.status(400).json({ error: 'Invalid email format2' });
 	}
   
+	
+
 	// Check if email is already registered
-	if (store.some(user => user.email === email)) {
-	  return res.status(400).json({ error: 'Email already registered' });
-	}
+	//if (users.find(user => user.email === email)) {
+	  //return res.status(400).json({ error: 'Email already registered' });
+	//}
   
 	// Add user to the store
 	const user  = { email, password, nickname, disabled: false };
-	store.push(user);
-  
+	users.put('User: ', nickname)
+
 	// Send verification email (in a real-world scenario, you would send an email with a verification link)
   
 	res.status(201).json({ message: `Account created successfully with ${email} . Welcome ${nickname}` });
+}catch (error) {
+	console.error('Error fetching superheroes:', error);
+}
 });
-
-
-
-
-  
-  // Verification of email (In a real-world scenario, this would involve sending a verification link)
-  app.post('/api/verify-email', (req, res) => {
-	const { email } = req.body;
-  
-	const user = store.find(user => user.email === email);
-  
-	if (!user) {
-	  return res.status(404).json({ error: 'User not found' });
-	}
-  
-	// Perform email verification steps here
-
-  
-	res.json({ message: 'Email verified successfully' });
-  });
-
-
-
 
 
   
@@ -325,7 +315,7 @@ app.post('/api/register', (req, res) => {
   app.post('/api/login', (req, res) => {
 	const { email, password } = req.body;
   
-	const user = store.find(user => user.email === email);
+	const user = users.find(user => user.email === email);
   
 	if (!user || user.disabled) {
 	  return res.status(401).json({ error: 'Invalid credentials or account disabled' });
@@ -342,7 +332,7 @@ app.post('/api/register', (req, res) => {
 
 //Account disabling
 app.post('/api/disable', (req,res) => {
-	const user = store.find(user => user.email === email)
+	const user = users.find(user => user.email === email)
 
 
 })
