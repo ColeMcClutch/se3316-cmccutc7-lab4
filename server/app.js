@@ -280,7 +280,6 @@ try{
 
 	// Check if email is present and is a string
 
-	console.log(email)
 	if (!email || typeof email !== 'string') {
 		return res.status(400).json({ error: 'Invalid email format' });
   	}
@@ -290,16 +289,23 @@ try{
 	  return res.status(400).json({ error: 'Invalid email format2' });
 	}
   
-	
+
 
 	// Check if email is already registered
-	//if (users.find(user => user.email === email)) {
-	  //return res.status(400).json({ error: 'Email already registered' });
-	//}
+	if (users.get(user => user.email === email)) {
+	  return res.status(400).json({ error: 'Email already registered' });
+	}
   
-	// Add user to the store
+	// Add user to the storage
 	const user  = { email, password, nickname, disabled: false };
-	users.put('User: ', nickname)
+	console.log(user)
+	console.log(user.email)
+	console.log(user.password)
+	console.log(user.nickname)
+
+	users.put('User: ' + user.nickname, user)
+
+	
 
 	// Send verification email (in a real-world scenario, you would send an email with a verification link)
   
@@ -312,7 +318,7 @@ try{
 
   
   // Local authentication mechanism - Login
-  app.post('/api/login', (req, res) => {
+  app.post('/api/users/login', (req, res) => {
 	const { email, password } = req.body;
   
 	const user = users.find(user => user.email === email);
@@ -344,6 +350,12 @@ app.post('/api/disable', (req,res) => {
 app.get('/api/superheroes/allLists', (req, res) => {
 	res.send(store.get("lists"));
 })
+
+//Get all lists
+app.get('/api/users/allUsers', (req, res) => {
+	res.send(users.get("User"));
+})
+
 
 //200 Successful code
 app.get('/success', (req, res) => {
