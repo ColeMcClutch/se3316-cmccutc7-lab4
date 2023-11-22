@@ -44,7 +44,26 @@ const logIn = document.getElementById('logIn')
 const loginScreen = document.getElementById('loginScreen')
 
 
+// Function to show the popup
+function showPopup() {
+    document.getElementById('popup-container').style.display = 'block';
+    document.getElementById('overlay').style.display = 'block';
+}
 
+// Function to close the popup
+function closePopup() {
+    document.getElementById('popup-container').style.display = 'none';
+    document.getElementById('overlay').style.display = 'none';
+}
+
+window.onload=showPopup
+
+const close = document.getElementById('popClose')
+
+close.addEventListener('click', () =>{
+    closePopup()
+    emailText.focus()
+})
 
 //Button commands
 //register
@@ -63,18 +82,33 @@ logIn.addEventListener('click', () => {
 try{
     const response = fetch(`/api/login?email=${emailText}&password=${passwordText}`)
     if(response.ok){
+        const account = response.json()
+        if(account.nickname == 'admin'){
+            //include code for give admion privliges
+            loginScreen.innerHTML=''
+            // Create a new paragraph element
+            const profile = document.createElement('p');
+            // Set the text content of the paragraph
+            profile.textContent = `Welcome ${usernameText}!`;
+            loginScreen.appendChild(profile)
+            loginScreen.appendChild(logOut)
+            const deleteUser = document.createElement('p')
+            loginScreen.appendChild(deleteUser)
+        } else{
         loginScreen.innerHTML=''
         // Create a new paragraph element
         const profile = document.createElement('p');
         // Set the text content of the paragraph
         profile.textContent = `Welcome ${usernameText}!`;
         loginScreen.appendChild(profile)
-
+        loginScreen.appendChild(logOut)
+    }
+    
 
     }else{
         const incorrect = document.createElement('p')
         incorrect.textContent = 'No account exists'
-        loginScreen.appendChild(incorrect)
+        
     }
 }catch (error){
     console.error('Error: ', error);
@@ -85,7 +119,15 @@ try{
 
 //logout
 logOut.addEventListener('click', () => {
+    loginScreen.innerHTML=''
+    loginScreen.appendChild(emailText)
+        loginScreen.appendChild(passwordText)
+        loginScreen.appendChild(usernameText)
+        loginScreen.appendChild(signUp)
+        loginScreen.appendChild(logIn)
+        loginScreen.appendChild(logOut)
     
+
 })
 
 
