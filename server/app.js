@@ -289,21 +289,26 @@ try{
 	  return res.status(400).json({ error: 'Invalid email format2' });
 	}
   
-
-
-	//Check if email is already registered
-	if (users.find(user => user.email === email)) {
-	  return res.status(400).json({ error: 'Email already registered' });
-	}
-  
-	// Add user to the storage
 	const user  = { email, password, nickname, disabled: false };
+
+	//If users is empty
+	if(users==null){
+		users.put('User: ' + user.nickname, user)
+	} else{
+		//Check if email is already registered
+		if (users.get(user.email)) {
+	  		return res.status(400).json({ error: 'Email already registered' });
+		}
+		// Add user to the storage
+		users.put('User: ' + user.nickname, user)
+	}
+	
 	console.log(user)
 	console.log(user.email)
 	console.log(user.password)
 	console.log(user.nickname)
 
-	users.put('User: ' + user.nickname, user)
+	
 
 	
 
@@ -321,6 +326,10 @@ try{
   app.post('/api/users/login', (req, res) => {
 	const { email, password } = req.body;
   
+	if(users == null){
+		return res.status(401).json({error: 'No users in database'})
+	}
+
 	const user = users.find(user => user.email === email);
   
 	if (!user || user.disabled) {
