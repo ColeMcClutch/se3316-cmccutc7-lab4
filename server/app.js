@@ -291,8 +291,8 @@ try{
   
 
 
-	// Check if email is already registered
-	if (users.get(user => user.email === email)) {
+	//Check if email is already registered
+	if (users.find(user => user.email === email)) {
 	  return res.status(400).json({ error: 'Email already registered' });
 	}
   
