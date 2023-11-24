@@ -67,11 +67,26 @@ close.addEventListener('click', () =>{
 
 //Button commands
 //register
-signUp.addEventListener('click', () => {
-    const response = fetch(`/api/register?email=${emailText}&password=${passwordText}&nickname=${usernameText}`);
-    if(response.ok){
-        const logData = response.json()
-        alert(`New Account Added! Welcome ${usernameText}! You may login now`);
+signUp.addEventListener('click', async() => {
+    const email = emailText.value
+    console.log(email)
+
+    //This and password are currently null. Must be fixed to get event listener to work
+    const username = usernameText.value
+    console.log(username)
+    const password = passwordText.value
+    console.log(password)
+    
+    try{
+        const response = await fetch(`/api/register?email=${email}&password=${password}&nickname=${username}`);
+        if(response.ok){
+            const logData = await response.json()
+            alert(`New Account Added! Welcome ${usernameText}! You may login now`);
+        }else {
+            console.error('Registration failed:', response.status, response.statusText);
+        }
+    } catch (error) {
+        console.error('Error during registration:', error);
     }
 })
 
@@ -79,8 +94,10 @@ signUp.addEventListener('click', () => {
 
 //login
 logIn.addEventListener('click', () => {
+    
 try{
-    const response = fetch(`/api/login?email=${emailText}&password=${passwordText}`)
+    
+    const response = fetch(`/api/login?email=${emailText}&password=${passwordText}&nickname=${usernameText}`)
     if(response.ok){
         const account = response.json()
         if(account.nickname == 'admin'){
