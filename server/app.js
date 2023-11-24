@@ -289,7 +289,7 @@ try{
 	  return res.status(400).json({ error: 'Invalid email format2' });
 	}
   
-	const user  = { email, password, nickname, disabled: false };
+	const user  = { 'email': email, 'password': password, 'nickname': nickname, disabled: false };
 
 	//If users is empty
 	if(users==null){
