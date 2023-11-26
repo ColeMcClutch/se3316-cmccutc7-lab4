@@ -4,6 +4,8 @@ const rateLimit = require('express-rate-limit')
 const helmet = require('helmet')
 const validator = require('validator');
 const bodyParser = require('body-parser');
+const nodemailer = require("nodemailer");
+
 
 
 // Prepare Storage
@@ -273,8 +275,22 @@ app.get('/api/superheroes/c-l/:listName/superheroes', (req, res) => {
 
 //Login/Authentication
 
+//Verification email client FOCUS ON THIS NEXT!
+const transporter = nodemailer.createTransport({
+	host: "smtp.forwardemail.net",
+	port: 465,
+	secure: true,
+	auth: {
+	  // TODO: replace `user` and `pass` values from <https://forwardemail.net>
+	  user: email,
+	  pass: password,
+	},
+  });
+
+
+
 // Local authentication mechanism - Create an account
-app.post('/api/register', (req, res) => {
+app.post('/api/users/register', (req, res) => {
 try{
 	const { email, password, nickname } = req.query;
 
@@ -289,69 +305,112 @@ try{
 	  return res.status(400).json({ error: 'Invalid email format2' });
 	}
   
-	const user  = { 'email': email, 'password': password, 'nickname': nickname, disabled: false };
+	const user  = { 'email': email, 'password': password, 'nickname': nickname, disabled: false, verified: false };
 
 	//If users is empty
 	if(users==null){
 		users.put('User: ' + user.nickname, user)
 	} else{
 		//Check if email is already registered
-		if (users.get(user.email)) {
-	  		return res.status(400).json({ error: 'Email already registered' });
+		if (users.get('User: ' + nickname)) {
+	  		return res.status(400).json({ error: 'User already registered' });
 		}
 		// Add user to the storage
 		users.put('User: ' + user.nickname, user)
-	}
-	
-	console.log(user)
-	console.log(user.email)
-	console.log(user.password)
-	console.log(user.nickname)
-
-	
-
-	
+	}	
 
 	// Send verification email (in a real-world scenario, you would send an email with a verification link)
-  
+	
+	//Sudo
+	//Make verfication account data
+    const verificationData ={
+        email,
+        password
+    }
+    //Create link
+    const verificationLink = `http://localhost:3000/api/users/verify?token=${verificationToken}`;
+    //const verifyMessage = `Welcome to the service ${nickname}! Please click the link below to verify: ${verificationLink}`;
+    //Email process
+    const mailOptions = {
+        from: 'your-email@gmail.com',
+        to: email,
+        subject: 'Account Verification',
+        text: verifyMessage,
+      };
+
+    //if for when link is clicked
+    if(){ //condition for link click
+    
+    //Set user status to true verified
+    user = {email, password, nickname, disabled:false, verifierd:true}
+    }
+
+
 	res.status(201).json({ message: `Account created successfully with ${email} . Welcome ${nickname}` });
-}catch (error) {
-	console.error('Error fetching superheroes:', error);
-}
+	}catch (error) {
+		console.error('Error fetching superheroes:', error);
+	}
 });
 
 
   
   // Local authentication mechanism - Login
   app.post('/api/users/login', (req, res) => {
-	const { email, password } = req.body;
+	try{
+		const { email, password, nickname } = req.query;
   
-	if(users == null){
-		return res.status(401).json({error: 'No users in database'})
-	}
+		if(users == null){
+			return res.status(401).json({error: 'No users in database'})
+		}
 
-	const user = users.find(user => user.email === email);
+		console.log('Nickname to retrieve:', nickname);
+
+		const user = users.get('User: ' + nickname); // Use nickname as the key
+		console.log('Retrieved user:', user);
   
-	if (!user || user.disabled) {
-	  return res.status(401).json({ error: 'Invalid credentials or account disabled' });
-	}
+		if (!user || user.disabled==true) {
+	  	return res.status(401).json({ error: 'Invalid credentials or account disabled' });
+		}
+
+		if (!user.verified==true) {
+			return res.status(401).json({ error: 'Account not Verified! Please Check Email!' });
+		}
   
-	// In a real-world scenario, you would compare hashed passwords here
-	if (user.password !== password) {
-	  return res.status(401).json({ error: 'Invalid credentials' });
-	}
+		if (user.password !== password) {
+	  		return res.status(401).json({ error: 'Invalid credentials' });
+		}
   
-	res.json({ message: 'Login successful' });
+		res.status(201).json({message: `Login successful with ${email} . Welcome ${nickname}!` })
+		}catch (error) {
+			console.error('Error fetching superheroes:', error);
+		}
   });
   
 
 //Account disabling
-app.post('/api/disable', (req,res) => {
+app.post('/api/users/disable', (req,res) => {
 	const user = users.find(user => user.email === email)
 
 
 })
 
+
+// Delete a custom list and include precaution for side effects
+app.delete('/api/users/removeAccount', (req, res) => {
+	const { email, password, nickname } = req.query;
+
+	// Check if the custom list exists
+	if (users.get("User: " + nickname)) {
+
+			//deletes user
+			users.remove("User" + nickname);
+			res.json({ message: `User ${nickname} @ ${email} has been removed` });
+		
+	} else {
+		// If the list doesn't exist, return an error.
+		res.status(404).json({ error: `user not found` });
+	}
+});
 
 
 
