@@ -36,8 +36,8 @@ const customSearch = document.getElementById('customName')
 
 //Login controls
 const emailText = document.getElementById('email')
-const usernameText = document.getElementById('userName')
-const passwordText = document.getElementById('passWord')
+const usernameText = document.getElementById('username')
+const passwordText = document.getElementById('password')
 const signUp = document.getElementById('signUp')
 const logOut = document.getElementById('logOut')
 const logIn = document.getElementById('logIn')
@@ -67,28 +67,26 @@ close.addEventListener('click', () =>{
 
 //Button commands
 //register
-signUp.addEventListener('click', async() => {
-    const email = emailText.value
-    console.log(email)
+signUp.addEventListener('click', async () => {
+    const email = emailText.value;
+    const username = usernameText.value;
+    const password = passwordText.value;
 
-    //This and password are currently null. Must be fixed to get event listener to work
-    const username = usernameText.value
-    console.log(username)
-    const password = passwordText.value
-    console.log(password)
-    
-    try{
-        const response = await fetch(`/api/register?email=${email}&password=${password}&nickname=${username}`);
-        if(response.ok){
-            const logData = await response.json()
-            alert(`New Account Added! Welcome ${usernameText}! You may login now`);
-        }else {
+    try {
+        const response = await fetch(`/api/users/register?email=${email}&password=${password}&nickname=${username}`, {
+            method: 'POST'
+        });
+
+        if (response.ok) {
+            const logData = await response.json();
+            alert(`New Account Added! Welcome ${username}! After verification, You may login now`);
+        } else {
             console.error('Registration failed:', response.status, response.statusText);
         }
     } catch (error) {
         console.error('Error during registration:', error);
     }
-})
+});
 
 
 
@@ -97,7 +95,9 @@ logIn.addEventListener('click', () => {
     
 try{
     
-    const response = fetch(`/api/login?email=${emailText}&password=${passwordText}&nickname=${usernameText}`)
+    const response = fetch(`/api/login?email=${emailText}&password=${passwordText}&nickname=${usernameText}`,{
+        method: 'POST'
+    })
     if(response.ok){
         const account = response.json()
         if(account.nickname == 'admin'){
