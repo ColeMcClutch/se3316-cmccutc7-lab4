@@ -44,6 +44,10 @@ const logIn = document.getElementById('logIn')
 const loginScreen = document.getElementById('loginScreen')
 
 
+//login header
+const loginTitle = document.getElementById('notice')
+
+
 // Function to show the popup
 function showPopup() {
     document.getElementById('popup-container').style.display = 'block';
@@ -88,38 +92,71 @@ signUp.addEventListener('click', async () => {
     }
 });
 
+//create conditional delete button
+let deleteUser
 
+//login status button
+let loginStatus = false
+
+//rating options
+let ratingText
+let ratingChoice
 
 //login
-logIn.addEventListener('click', () => {
+logIn.addEventListener('click', async () => {
     
 try{
-    
-    const response = fetch(`/api/login?email=${emailText}&password=${passwordText}&nickname=${usernameText}`,{
+    //calling on email, username, and password
+    const email = emailText.value;
+    const username = usernameText.value;
+    const password = passwordText.value;
+
+    const response = await fetch(`/api/users/login?email=${email}&password=${password}&nickname=${username}`,{
         method: 'POST'
     })
     if(response.ok){
-        const account = response.json()
-        if(account.nickname == 'admin'){
-            //include code for give admion privliges
-            loginScreen.innerHTML=''
-            // Create a new paragraph element
-            const profile = document.createElement('p');
-            // Set the text content of the paragraph
-            profile.textContent = `Welcome ${usernameText}!`;
-            loginScreen.appendChild(profile)
-            loginScreen.appendChild(logOut)
-            const deleteUser = document.createElement('p')
-            loginScreen.appendChild(deleteUser)
-        } else{
-        loginScreen.innerHTML=''
-        // Create a new paragraph element
-        const profile = document.createElement('p');
+        const account = await response.json()
+        //Remove login buttons
+        loginScreen.removeChild(signUp)
+        loginScreen.removeChild(logIn)
         // Set the text content of the paragraph
-        profile.textContent = `Welcome ${usernameText}!`;
-        loginScreen.appendChild(profile)
-        loginScreen.appendChild(logOut)
-    }
+        loginTitle.textContent = `Welcome ${username}!`;
+        loginStatus=true
+        deleteUser = document.createElement('button')
+        deleteUser.textContent = 'Delete Account';
+        deleteUser.addEventListener('click', async () => {
+        // Handle the logic to delete the user's account
+        const deleteResponse = await fetch(`/api/users/removeAccount?email=${emailText.value}&password=${passwordText.value}&nickname=${usernameText.value}`, {
+          method: 'DELETE'
+        });
+
+        if (deleteResponse.ok) {
+          // Update the UI or perform any other actions after successful deletion
+          console.log('User account deleted successfully.');
+        } else {
+          console.error('Error deleting user account:', deleteResponse.statusText);
+        }
+
+        //rating system
+        if(loginStatus==true){
+            ratingText = document.createElement('input')
+            ratingText.type = 'float';
+            ratingText.placeholder = 'Rate out of 5';
+            ratingChoice = document.createElement('select')
+            // Append the delete button to the login screen
+            //THESE NEED TO BE ADJUSTED TO APPEAR ON SITE
+            loginScreen.appendChild(deleteUser);
+            loginScreen.appendChild(ratingChoice)
+            loginScreen.appendChild(ratingText)
+
+
+        }
+
+
+      });
+
+      
+        
     
 
     }else{
@@ -136,14 +173,34 @@ try{
 
 //logout
 logOut.addEventListener('click', () => {
-    loginScreen.innerHTML=''
+
+    //removes items first to rearrange order
+    loginScreen.removeChild(emailText)
+    loginScreen.removeChild(passwordText)
+    loginScreen.removeChild(usernameText)
+    loginScreen.removeChild(logOut)
+    loginScreen.removeChild(loginTitle)
+    if (deleteUser) {
+        loginScreen.removeChild(deleteUser);
+        deleteUser = null; // Reset the reference
+      }
+      loginScreen.removeChild(ratingText)
+      loginScreen.removeChild(ratingChoice)
+
+    //re-appends them in correct order
     loginScreen.appendChild(emailText)
-        loginScreen.appendChild(passwordText)
-        loginScreen.appendChild(usernameText)
-        loginScreen.appendChild(signUp)
-        loginScreen.appendChild(logIn)
-        loginScreen.appendChild(logOut)
-    
+    loginScreen.appendChild(usernameText)
+    loginScreen.appendChild(passwordText)
+    loginScreen.appendChild(signUp)
+    loginScreen.appendChild(logIn)
+    loginScreen.appendChild(logOut)
+    loginScreen.appendChild(loginTitle)
+    loginTitle.textContent = '*Please use Gmail email accounts for creating user account*'
+    loginStatus=false
+
+    usernameText.value=''
+    emailText.value=''
+    passwordText.value=''
 
 })
 
@@ -240,6 +297,7 @@ const createList = async () => {
             newOption.textContent = newListName.value
             newOption.value = newListName.value
             deleteDrop.appendChild(newOption)
+            ratingChoice.appendChild(newOption)
 
             //Add List to listView
             const row = document.createElement('tr')
