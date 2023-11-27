@@ -277,13 +277,12 @@ app.get('/api/superheroes/c-l/:listName/superheroes', (req, res) => {
 
 //Verification email client FOCUS ON THIS NEXT!
 const transporter = nodemailer.createTransport({
-	host: "smtp.forwardemail.net",
+	host: "smtp.gmail.com",
 	port: 465,
 	secure: true,
 	auth: {
-	  // TODO: replace `user` and `pass` values from <https://forwardemail.net>
-	  user: email,
-	  pass: password,
+	  user: 'j87126681@gmail.com',
+	  pass: 'fbua sbot vvpp fzsy',
 	},
   });
 
@@ -305,7 +304,10 @@ try{
 	  return res.status(400).json({ error: 'Invalid email format2' });
 	}
   
-	const user  = { 'email': email, 'password': password, 'nickname': nickname, disabled: false, verified: false };
+	const user  = { email, password, nickname, disabled: false, verified: false };
+	console.log(email)
+	console.log(password)
+	console.log(nickname)
 
 	//If users is empty
 	if(users==null){
@@ -322,25 +324,9 @@ try{
 	// Send verification email (in a real-world scenario, you would send an email with a verification link)
 	
 	//Sudo
-	//Make verfication account data
-    const verificationData ={
-        email,
-        password
-    }
-    //Create link
-    const verificationLink = `http://localhost:3000/api/users/verify?token=${verificationToken}`;
-    //const verifyMessage = `Welcome to the service ${nickname}! Please click the link below to verify: ${verificationLink}`;
-    //Email process
-    const mailOptions = {
-        from: 'your-email@gmail.com',
-        to: email,
-        subject: 'Account Verification',
-        text: verifyMessage,
-      };
-
+	const check = verifyAccount(req, email, password, nickname)
     //if for when link is clicked
-    if(){ //condition for link click
-    
+    if(check==true){ //condition for link click
     //Set user status to true verified
     user = {email, password, nickname, disabled:false, verifierd:true}
     }
@@ -352,8 +338,73 @@ try{
 	}
 });
 
+//verification function
+async function verifyAccount(req, email, password, nickname) {
+	try{
+		const verificationToken = generateVerificationToken()
+		const verificationLink = `http://localhost:3000/verify-email?token=${verificationToken}&nickname=${nickname}`;
+		const mailOptions = {
+			from: 'j87126681',
+			to: email,
+			subject: 'Verification Link',
+			text: 'Hello, here is your email verification link',
+			html: `<p>Please click on the following link to verify your email:</p><p><a href="${verificationLink}">${verificationLink}</a></p>`,
+		}
+		console.log('Verification link:', verificationLink);
+
+		  transporter.sendMail(mailOptions, (error, info) => {
+			if (error) {
+				console.error('Error sending email:', error);
+			  } else {
+				console.log('Email sent:', info.response);
+				return true
+			  }
+		  })	  
+ 	} catch (error) {
+    	console.error('Error sending verification email:', error);
+    	return false;
+  	}
+}
+
+// Verification endpoint
+app.get('/verify-email', (req, res) => {
+	const { token, nickname } = req.query;
+	console.log('Request parameters:', req.query);
+
 
   
+	// Check if the token is valid (you should implement this validation)
+	if (isValidVerificationToken(token)) {
+		console.log(nickname)
+	  // Update the user status to verified (you should implement this logic)
+	  // Example using some kind of storage (assuming users is a Map)
+	  const user = users.get('User: ' + nickname);
+	  if (user) {
+		user.verified = true;
+		users.put('User: ' + nickname, user);
+		res.status(200).json({ message: 'Email verified successfully' });
+	  }
+  
+	  res.status(200).json({ message: 'Email verified successfully' });
+	} else {
+	  res.status(400).json({ error: 'Invalid verification token' });
+	}
+  });
+
+
+// Function to generate a unique verification token (you should implement this)
+function generateVerificationToken() {
+	return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+  }
+  
+  // Function to validate the verification token (you should implement this)
+  function isValidVerificationToken(token) {
+	return true;
+  }
+
+
+
+
   // Local authentication mechanism - Login
   app.post('/api/users/login', (req, res) => {
 	try{
@@ -363,10 +414,8 @@ try{
 			return res.status(401).json({error: 'No users in database'})
 		}
 
-		console.log('Nickname to retrieve:', nickname);
-
 		const user = users.get('User: ' + nickname); // Use nickname as the key
-		console.log('Retrieved user:', user);
+		
   
 		if (!user || user.disabled==true) {
 	  	return res.status(401).json({ error: 'Invalid credentials or account disabled' });
@@ -389,9 +438,14 @@ try{
 
 //Account disabling
 app.post('/api/users/disable', (req,res) => {
-	const user = users.find(user => user.email === email)
+try{
+	const { email, password, nickname } = req.query;
+	const user = users.get('User: ' + nickname)
+	user.disabled == true
 
-
+	}catch (error) {
+		console.error('Error fetching superheroes:', error);
+	}
 })
 
 
@@ -403,7 +457,7 @@ app.delete('/api/users/removeAccount', (req, res) => {
 	if (users.get("User: " + nickname)) {
 
 			//deletes user
-			users.remove("User" + nickname);
+			users.remove("User: " + nickname);
 			res.json({ message: `User ${nickname} @ ${email} has been removed` });
 		
 	} else {
