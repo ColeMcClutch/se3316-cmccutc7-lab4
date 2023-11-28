@@ -372,17 +372,17 @@ const createList = async () => {
 
             //ratebutton Listener
             rateButton.addEventListener('click', () => {
-                // Get the rating information from the row's content
-                const ratingInfo = row.textContent
-            
-                // Check if the row matches the expected format and ratingChoice
-                if (ratingInfo == ratingChoice.value) {
-                    listTitle.removeChild(row);
-                    row.innerHTML = `<td>${newListName.value} ${ratingText.value}/5  ${review.value}</td>`;
-                    listTitle.appendChild(row);
-                }
+                    // Get the rating information from the row's content
+                    const ratingInfo = row.textContent;
+                
+                    // Check if the row contains the selected list name and ratingChoice
+                    if (ratingInfo.includes(newListName.value) && ratingInfo.includes(ratingChoice.value)) {
+                        // Check if the row matches the expected format
+                        listTitle.removeChild(row);
+                        row.innerHTML = `<td>${newListName.value}   -   ${ratingText.value}/5  -   ${review.value}</td>`;
+                        listTitle.appendChild(row);
+                    }
             });
-
 
         } else {
             console.error('Failed to create a new list')
