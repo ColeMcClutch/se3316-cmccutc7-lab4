@@ -441,12 +441,30 @@ app.post('/api/users/disable', (req,res) => {
 try{
 	const { email, password, nickname } = req.query;
 	const user = users.get('User: ' + nickname)
-	user.disabled == true
+	user.disabled=true
+	console.log(user)
+
+	res.status(201).json({message: `Account with ${email} has been disabled. Goodbye ${nickname}!` })
 
 	}catch (error) {
 		console.error('Error fetching superheroes:', error);
 	}
 })
+
+//Account disabling
+app.post('/api/users/enable', (req,res) => {
+	try{
+		const { email, password, nickname } = req.query;
+		const user = users.get('User: ' + nickname)
+		user.disabled=false
+		console.log(user)
+	
+		res.status(201).json({message: `Account with ${email} has been enabled. Welcome back ${nickname}!` })
+	
+		}catch (error) {
+			console.error('Error fetching superheroes:', error);
+		}
+	})
 
 
 // Delete a custom list and include precaution for side effects
