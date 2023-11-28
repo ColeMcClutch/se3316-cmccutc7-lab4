@@ -93,14 +93,34 @@ signUp.addEventListener('click', async () => {
 });
 
 //create conditional delete button
-let deleteUser
-
-//login status button
-let loginStatus = false
+let deleteUser;
 
 //rating options
-let ratingText
-let ratingChoice
+let ratingText;
+
+//rating description
+ratingText = document.createElement('input')
+ratingText.type = 'float';
+ratingText.placeholder = 'Rate out of 5';
+const ratingChoice = document.createElement('select')
+
+let rateButton = document.createElement('button')
+rateButton.textContent='Rate List'
+
+//review description
+let review = document.createElement('input')
+review.placeholder = 'Review of List'
+
+
+//Disable button
+let disableButton = document.createElement('button')
+disableButton.textContent='Disable'
+
+//enable button
+let enableButton = document.createElement('button')
+enableButton.textContent='Enable'
+
+
 
 //login
 logIn.addEventListener('click', async () => {
@@ -121,7 +141,6 @@ try{
         loginScreen.removeChild(logIn)
         // Set the text content of the paragraph
         loginTitle.textContent = `Welcome ${username}!`;
-        loginStatus=true
         deleteUser = document.createElement('button')
         deleteUser.textContent = 'Delete Account';
         deleteUser.addEventListener('click', async () => {
@@ -137,27 +156,23 @@ try{
           console.error('Error deleting user account:', deleteResponse.statusText);
         }
 
-        //rating system
-        if(loginStatus==true){
-            ratingText = document.createElement('input')
-            ratingText.type = 'float';
-            ratingText.placeholder = 'Rate out of 5';
-            ratingChoice = document.createElement('select')
-            // Append the delete button to the login screen
-            //THESE NEED TO BE ADJUSTED TO APPEAR ON SITE
-            loginScreen.appendChild(deleteUser);
-            loginScreen.appendChild(ratingChoice)
-            loginScreen.appendChild(ratingText)
-
-
-        }
-
-
       });
 
+      // Append the delete button and rating abilities to the login screen
+      loginScreen.appendChild(deleteUser);
+      loginScreen.appendChild(ratingChoice)
+      loginScreen.appendChild(ratingText)
+      loginScreen.appendChild(review)
+      loginScreen.appendChild(rateButton)
+
+      //If admin, place enable button
+      if(username == 'admin'){
+        loginScreen.appendChild(enableButton)
+        //Attach Disable button
+        loginScreen.appendChild(disableButton)
+      }
+
       
-        
-    
 
     }else{
         const incorrect = document.createElement('p')
@@ -180,12 +195,13 @@ logOut.addEventListener('click', () => {
     loginScreen.removeChild(usernameText)
     loginScreen.removeChild(logOut)
     loginScreen.removeChild(loginTitle)
-    if (deleteUser) {
-        loginScreen.removeChild(deleteUser);
-        deleteUser = null; // Reset the reference
-      }
-      loginScreen.removeChild(ratingText)
-      loginScreen.removeChild(ratingChoice)
+    loginScreen.removeChild(deleteUser);    
+    loginScreen.removeChild(ratingText)
+    loginScreen.removeChild(ratingChoice)
+    loginScreen.removeChild(rateButton)
+    loginScreen.removeChild(review)
+    loginScreen.removeChild(enableButton)
+    loginScreen.removeChild(disableButton)
 
     //re-appends them in correct order
     loginScreen.appendChild(emailText)
@@ -196,14 +212,55 @@ logOut.addEventListener('click', () => {
     loginScreen.appendChild(logOut)
     loginScreen.appendChild(loginTitle)
     loginTitle.textContent = '*Please use Gmail email accounts for creating user account*'
-    loginStatus=false
-
     usernameText.value=''
     emailText.value=''
     passwordText.value=''
+    listView.innerHTML=''
+    heroView.innerHTML=''
 
 })
 
+
+//disableButton listener
+disableButton.addEventListener('click', async() => {
+    //logout
+
+    const email = emailText.value;
+    const username = usernameText.value;
+    const password = passwordText.value;
+
+    const response = await fetch(`/api/users/disable?email=${email}&password=${password}&nickname=${username}`,{
+        method: 'POST'
+    })
+    if(response.ok){
+
+    //re-appends them in correct order
+    loginTitle.textContent = `*Account: ${username} has been disabled*`;
+    
+
+    }
+})
+
+
+//disableButton listener
+enableButton.addEventListener('click', async() => {
+    //logout
+
+    const email = emailText.value;
+    const username = usernameText.value;
+    const password = passwordText.value;
+
+    const response = await fetch(`/api/users/disable?email=${email}&password=${password}&nickname=${username}`,{
+        method: 'POST'
+    })
+    if(response.ok){
+
+    //re-appends them in correct order
+    loginTitle.textContent = `*Account: ${username} has been Enabled*`;
+    
+
+    }
+})
 
 
 //publisher button
@@ -270,12 +327,6 @@ const searchHeroes = async () => {
            
         }
     
-      
-
-
-
-
-
 // Event listener for the search button click
 searchSubmit.addEventListener('click', () => {
     searchHeroes()
@@ -293,16 +344,44 @@ const createList = async () => {
         if (response.ok) {
             newListName.textContent = ''
 
-            const newOption = document.createElement('option')
-            newOption.textContent = newListName.value
-            newOption.value = newListName.value
-            deleteDrop.appendChild(newOption)
-            ratingChoice.appendChild(newOption)
+            //Delete Option
+            const newOptionDelete = document.createElement('option')
+            newOptionDelete.textContent = newListName.value
+            newOptionDelete.value = newListName.value
+            deleteDrop.appendChild(newOptionDelete)
+
+            //Recovery Option
+            const newOptionRating = document.createElement('option');
+            newOptionRating.textContent = newListName.value
+            newOptionRating.value = newListName.value
+            ratingChoice.appendChild(newOptionRating)
+
+
+
+            
 
             //Add List to listView
             const row = document.createElement('tr')
             row.innerHTML = `<td>${newListName.value}</td>`;
             listTitle.appendChild(row)
+
+            //includes rating instructions
+
+            //list for rating
+            const rowRateChoice = ratingChoice.value
+
+            //ratebutton Listener
+            rateButton.addEventListener('click', () => {
+                // Get the rating information from the row's content
+                const ratingInfo = row.textContent
+            
+                // Check if the row matches the expected format and ratingChoice
+                if (ratingInfo == ratingChoice.value) {
+                    listTitle.removeChild(row);
+                    row.innerHTML = `<td>${newListName.value} ${ratingText.value}/5  ${review.value}</td>`;
+                    listTitle.appendChild(row);
+                }
+            });
 
 
         } else {
