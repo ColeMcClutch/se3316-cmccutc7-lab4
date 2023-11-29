@@ -44,12 +44,11 @@ body{
 
 #listView{
     font-size: 16px;
-    height: 200px;
+    height: auto;
     border: 1px solid;
     background-color: cornflowerblue;
     display: flex;
   }
-
 
 .clicker{
     display: inline-flex;
