@@ -47,6 +47,9 @@ const loginScreen = document.getElementById('loginScreen')
 //login header
 const loginTitle = document.getElementById('notice')
 
+//List status
+const listStatus = document.getElementById('listChoice')
+
 
 // Function to show the popup
 function showPopup() {
@@ -120,8 +123,12 @@ disableButton.textContent='Disable'
 let enableButton = document.createElement('button')
 enableButton.textContent='Enable'
 
+//Update password button
+let updateButton = document.createElement('button')
+updateButton.textContent='Update Password'
 
-
+//Login controllers
+const loginControllers = () => {
 //login
 logIn.addEventListener('click', async () => {
     
@@ -158,12 +165,26 @@ try{
 
       });
 
+      updateButton.addEventListener('click' , async() => {
+        const updateResponse = await fetch(`/api/users/updatePassword?email=${emailText.value}&password=${passwordText.value}&nickname=${usernameText.value}&newPassword=${passwordText.value}`, {
+            method: 'POST'
+          });
+          if(updateResponse.ok){
+            // Update the UI or perform any other actions after successful deletion
+            console.log('Password updated.');
+            loginTitle.textContent = `${usernameText.value}, your password has been changed to: ${passwordText.value}`;
+        }
+      })
+
+
+
       // Append the delete button and rating abilities to the login screen
       loginScreen.appendChild(deleteUser);
       loginScreen.appendChild(ratingChoice)
       loginScreen.appendChild(ratingText)
       loginScreen.appendChild(review)
       loginScreen.appendChild(rateButton)
+      loginScreen.appendChild(updateButton)
 
       //If admin, place enable button
       if(username == 'admin'){
@@ -179,6 +200,10 @@ try{
         incorrect.textContent = 'No account exists'
         
     }
+
+    //Calls on display lists
+    await loadLists();
+
 }catch (error){
     console.error('Error: ', error);
 }
@@ -200,8 +225,11 @@ logOut.addEventListener('click', () => {
     loginScreen.removeChild(ratingChoice)
     loginScreen.removeChild(rateButton)
     loginScreen.removeChild(review)
-    loginScreen.removeChild(enableButton)
-    loginScreen.removeChild(disableButton)
+    loginScreen.removeChild(updateButton)
+    if(usernameText.value == 'admin'){
+        loginScreen.removeChild(enableButton)
+        loginScreen.removeChild(disableButton)
+    }
 
     //re-appends them in correct order
     loginScreen.appendChild(emailText)
@@ -212,14 +240,20 @@ logOut.addEventListener('click', () => {
     loginScreen.appendChild(logOut)
     loginScreen.appendChild(loginTitle)
     loginTitle.textContent = '*Please use Gmail email accounts for creating user account*'
-    usernameText.value=''
-    emailText.value=''
-    passwordText.value=''
+    usernameText.textContent=''
+    emailText.textContent=''
+    passwordText.textContent=''
     listView.innerHTML=''
     heroView.innerHTML=''
+    listTitle.innerHTML=''
+    deleteDrop.innerHTML=''
+    ratingChoice.innerHTML=''
 
 })
+}
 
+//Call on login controls
+loginControllers()
 
 //disableButton listener
 disableButton.addEventListener('click', async() => {
@@ -334,11 +368,118 @@ searchSubmit.addEventListener('click', () => {
 });
 
 
+// Loading lists
+const loadLists = async () => {
+    const username = usernameText.value;
+    try {
+        console.log('Runnning load list')
+
+        const response = await fetch('api/superheroes/allLists');
+        if (response.ok) {
+            const lists = await response.json(); // Await the json() promise
+
+            //Clears the table
+            listTitle.innerHTML=''
+
+            // Extract the first ten entries
+            const firstTenEntries = Object.entries(lists).slice(0, 15);
+
+            //TO-DO Work on getting listTitle changes to apply after ratings.
+            firstTenEntries.forEach(([listkey, list]) => {
+                if (list.status == 'public') {
+                    // Add List to listView
+                    const row = document.createElement('tr');
+                    row.innerHTML = `<td>${list.status + ': ' + list.listName}</td>`;
+                    listTitle.appendChild(row);
+
+
+                    //Delete Option
+                    const newOptionDelete = document.createElement('option')
+                    newOptionDelete.textContent = list.listName
+                    newOptionDelete.value = list.listName
+                    deleteDrop.appendChild(newOptionDelete)
+
+                    //Recovery Option
+                    const newOptionRating = document.createElement('option');
+                    newOptionRating.textContent = list.listName
+                    newOptionRating.value = list.listName
+                    ratingChoice.appendChild(newOptionRating)
+
+                    //ratebutton Listener
+                    rateButton.addEventListener('click', () => {
+                    // Get the rating information from the row's content
+                    const ratingInfo = row.textContent;
+                
+                    // Check if the row contains the selected list name and ratingChoice
+                    if (ratingInfo.includes(list.listName) && ratingInfo.includes(ratingChoice.value)) {
+                        // Check if the row matches the expected format
+                        listTitle.removeChild(row);
+                        row.innerHTML = `<td>${list.status} + ': ' + ${list.listName}   -   ${ratingText.value}/5  -   ${review.value}</td>`;
+                        listTitle.appendChild(row);
+                    }
+            });
+
+                }
+                if(list.status == 'private'){
+                    if(list.owner == username){
+                         // Add List to listView
+                        const row = document.createElement('tr');
+                        row.innerHTML = `<td>${list.status + ': ' + list.listName}</td>`;
+                        listTitle.appendChild(row);
+
+
+                        //Delete Option
+                        const newOptionDelete = document.createElement('option')
+                        newOptionDelete.textContent = list.listName
+                        newOptionDelete.value = list.listName
+                        deleteDrop.appendChild(newOptionDelete)
+
+                        //Recovery Option
+                        const newOptionRating = document.createElement('option');
+                        newOptionRating.textContent = list.listName
+                        newOptionRating.value = list.listName
+                        ratingChoice.appendChild(newOptionRating)
+
+
+
+                        //ratebutton Listener
+                        rateButton.addEventListener('click', () => {
+                        // Get the rating information from the row's content
+                        const ratingInfo = row.textContent;
+                
+                        // Check if the row contains the selected list name and ratingChoice
+                        if (ratingInfo.includes(list.listName) && ratingInfo.includes(ratingChoice.value)) {
+                            // Check if the row matches the expected format
+                            listTitle.removeChild(row);
+                            row.innerHTML = `<td>${list.status} :   ${list.listName}   -   ${ratingText.value}/5  -   ${review.value}</td>`;
+                            listTitle.appendChild(row);
+                    }
+            });
+
+                        }
+                }
+                
+
+
+
+            });
+        } else {
+            console.error('Error loading lists: Response not OK', response);
+        }
+    } catch (error) {
+        console.error('Error loading lists:', error);
+    }
+};
+
+
+
 //Function for creating new  list
 const createList = async () => {
     const newName = newListName.value
+    const status = listStatus.value
+    const username = usernameText.value
     try {
-        const response = await fetch(`/api/superheroes/new-lists/${newName}/New%20List`, {
+        const response = await fetch(`/api/superheroes/new-lists/${newName}/New%20List/${status}/${username}`, {
             method: 'POST',  
         })
         if (response.ok) {
@@ -362,13 +503,10 @@ const createList = async () => {
 
             //Add List to listView
             const row = document.createElement('tr')
-            row.innerHTML = `<td>${newListName.value}</td>`;
+            row.innerHTML = `<td>${status + ': ' + newListName.value}</td>`;
             listTitle.appendChild(row)
 
             //includes rating instructions
-
-            //list for rating
-            const rowRateChoice = ratingChoice.value
 
             //ratebutton Listener
             rateButton.addEventListener('click', () => {
@@ -379,7 +517,7 @@ const createList = async () => {
                     if (ratingInfo.includes(newListName.value) && ratingInfo.includes(ratingChoice.value)) {
                         // Check if the row matches the expected format
                         listTitle.removeChild(row);
-                        row.innerHTML = `<td>${newListName.value}   -   ${ratingText.value}/5  -   ${review.value}</td>`;
+                        row.innerHTML = `<td>${status + ': ' + newListName.value}   -   ${ratingText.value}/5  -   ${review.value}</td>`;
                         listTitle.appendChild(row);
                     }
             });
