@@ -154,9 +154,11 @@ app.get('/api/superheroes/superhero_search', (req, res) => {
 
 
 //Create new lists with input validation
-app.post('/api/superheroes/new-lists/:listName/:description', (req, res) => {
+app.post('/api/superheroes/new-lists/:listName/:description/:status/:owner', (req, res) => {
 	const listName = req.params.listName;
 	const description = req.params.description;
+	const status = req.params.status
+	const owner = req.params.owner
 
 	// Validate input to prevent injection attacks and unwanted side effects
 	if (typeof (listName) !== 'string' || typeof (description) !== 'string') {
@@ -171,11 +173,15 @@ app.post('/api/superheroes/new-lists/:listName/:description', (req, res) => {
 	const newList = {
 		listName,
 		description,
-		elements: [] // Initialize an empty array for elements
+		status,
+		owner,
+		elements: [],// Initialize an empty array for elements
+		
 	};
 
 	// Add the new list to your custom lists data structure 
 	store.put("lists." + listName, newList);
+	console.log(newList)
 
 	// Return a success response.
 	res.json({ message: 'New custom list is created' });
@@ -471,7 +477,7 @@ app.post('/api/users/enable', (req,res) => {
 app.delete('/api/users/removeAccount', (req, res) => {
 	const { email, password, nickname } = req.query;
 
-	// Check if the custom list exists
+	// Check if the user exists
 	if (users.get("User: " + nickname)) {
 
 			//deletes user
@@ -483,6 +489,28 @@ app.delete('/api/users/removeAccount', (req, res) => {
 		res.status(404).json({ error: `user not found` });
 	}
 });
+
+//Update password function
+app.post('/api/users/updatePassword', (req,res) => {
+	const { email, password, nickname, newPassword } = req.query;
+
+	//gathers user
+	// Gathers user
+    const userKey = 'User: ' + nickname;
+    const user = users.get(userKey);
+
+	if(user){
+		user.password = newPassword
+		console.log(user)
+		users.put(userKey, user);		
+		res.json({ message: `User ${nickname} @ ${email} has updated the password from ${password} to ${newPassword}`});
+	}else {
+		// If the list doesn't exist, return an error.
+		res.status(404).json({ error: `user not found` });
+	}
+	
+});
+
 
 
 
