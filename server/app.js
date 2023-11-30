@@ -107,7 +107,60 @@ app.get('/api/superheroes/search_and_combined', async (req, res) => {
     }
 });
 
+//Search for a hero list and set the element ids in the list to the heroes
+app.post('/api/superheroes/idSearch/:listName', async (req, res) => {
+    const listName = req.params.listName;
+    const list = store.get("lists." + listName);
 
+	//If list didn't exist
+    if (!list) {
+        return res.status(404).json({ error: `Custom list '${listName}' not found` });
+    }
+
+    try { //Checks for list elements and then begin superhero searching
+        if (list.elements && list.elements.length > 0) {
+            const elementsObject = list.elements.reduce((acc, element) => {
+                const superhero = superheroInfo.find((hero) => hero.id == element);
+                console.log(superhero)
+                if (superhero) {
+                    // Filter matching powers for the superhero
+                    const matchingPowers = superheroPowers.filter((power) => power.hero_names == superhero.name);
+
+                    // Extract true powers from the matching powers
+                    const truePowers = matchingPowers.reduce((powers, power) => {
+                        Object.entries(power).forEach(([key, value]) => {
+                            if (value === 'True') {
+                                powers.push(key);
+                            }
+                        });
+                        return powers;
+                    }, []);
+
+                    // Include powers if available
+                    superhero.powers = truePowers.length > 0 ? truePowers : 'none';
+
+                    acc[element] = superhero;
+                }
+                return acc;
+            }, {});
+
+			//Creates new updated list variable
+            const updatedList = {
+                listName: list.listName,
+                description: list.description,
+                status: list.status,
+                owner: list.owner,
+                elements: elementsObject,
+            };
+
+            res.json({ updatedList });
+        } else {
+            res.status(500).json({ error: 'List has no elements' });
+        }
+    } catch (error) {
+        res.status(500).json({ error: 'List has no elements' });
+    }
+});
 
 // Retrieve publisher information
 app.get('/api/superheroes/publisher_info', (req, res) => {
@@ -207,6 +260,33 @@ app.post('/api/superheroes/custom-Idlists/:listName', (req, res) => {
 	res.json({ message: 'Superhero Ids are saved to the new list' })
 
 });
+
+//Save a list of superhero IDs to a given custom list
+app.post('/api/superheroes/removeIDs/:listName', (req, res) => {
+	const listName = req.params.listName;
+	const list = store.get("lists." + listName)
+	const superheroIds = req.body.superheroIds
+	const removalIDs = req.body.removalIDs
+
+	// Check if the custom list exists
+	//if it doesn't exist
+	if (!list) {
+		return res.status(404).json({ error: `Custom list '${listName}' not found` });
+
+	}
+	// Remove elements from superheroIds that are in removalIDs
+	const updatedSuperheroIds = superheroIds.filter(id => !removalIDs.includes(id));	list.elements = superheroIds
+
+	list.elements = updatedSuperheroIds
+
+	store.put("lists." + listName, list)
+
+	//Success message
+	res.json({ message: 'Superhero Ids are saved to the new list' })
+
+});
+
+
 
 //Get the list of superhero IDS for a custom list
 app.get('/api/superheroes/custom/:listName/superhero-ids', (req, res) => {
