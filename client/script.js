@@ -1,3 +1,4 @@
+
 //Button creations
 const search = document.getElementById('searchBar')
 const searchSubmit = document.getElementById('searchSubmit')
@@ -31,7 +32,6 @@ const deleteButton = document.getElementById('deleteSubmit')
 
 const addListButton = document.getElementById('addCustom')
 const deleteListButton = document.getElementById('deleteCustom')
-const customSearch = document.getElementById('customName')
 
 
 //Login controls
@@ -49,6 +49,47 @@ const loginTitle = document.getElementById('notice')
 
 //List status
 const listStatus = document.getElementById('listChoice')
+
+
+//HeroesList for adjusting
+const listHeroes = document.getElementById('listHeroes')
+
+//Sets functions to disbaled until login
+nameSearch.disabled = true
+raceSearch.disabled= true
+publisherSearch.disabled= true
+powerSearch.disabled= true
+searchSubmit.disabled= true
+search.disabled= true
+create.disabled= true
+listStatus.disabled=true
+newListName.disabled= true
+deleteDrop.disabled= true
+pubButton.disabled= true
+deleteButton.disabled= true
+addListButton.disabled= true
+deleteListButton.disabled= true
+listHeroes.disabled=true
+
+
+function checkLogin(){
+    const isLoggedIn = true
+    nameSearch.disabled = !isLoggedIn
+    raceSearch.disabled= !isLoggedIn
+    publisherSearch.disabled= !isLoggedIn
+    powerSearch.disabled= !isLoggedIn
+    searchSubmit.disabled= !isLoggedIn
+    search.disabled= !isLoggedIn
+    create.disabled= !isLoggedIn
+    listStatus.disabled=!isLoggedIn
+    newListName.disabled= !isLoggedIn
+    deleteDrop.disabled= !isLoggedIn
+    pubButton.disabled= !isLoggedIn
+    deleteButton.disabled= !isLoggedIn
+    addListButton.disabled= !isLoggedIn
+    deleteListButton.disabled= !isLoggedIn
+    listHeroes.disabled = !isLoggedIn
+}
 
 
 // Function to show the popup
@@ -133,48 +174,56 @@ const loginControllers = () => {
 logIn.addEventListener('click', async () => {
     
 try{
+
+    //Change login status
+    checkLogin()
+
     //calling on email, username, and password
     const email = emailText.value;
     const username = usernameText.value;
     const password = passwordText.value;
+    const missingValues = !email || !password || !username;
 
+    if(missingValues){
+        alert('missing login credientials. Please enter missing values')
+    }else{
     const response = await fetch(`/api/users/login?email=${email}&password=${password}&nickname=${username}`,{
         method: 'POST'
     })
     if(response.ok){
-        const account = await response.json()
-        //Remove login buttons
-        loginScreen.removeChild(signUp)
-        loginScreen.removeChild(logIn)
-        // Set the text content of the paragraph
-        loginTitle.textContent = `Welcome ${username}!`;
-        deleteUser = document.createElement('button')
-        deleteUser.textContent = 'Delete Account';
-        deleteUser.addEventListener('click', async () => {
-        // Handle the logic to delete the user's account
-        const deleteResponse = await fetch(`/api/users/removeAccount?email=${emailText.value}&password=${passwordText.value}&nickname=${usernameText.value}`, {
-          method: 'DELETE'
-        });
+            const account = await response.json()
+            //Remove login buttons
+            loginScreen.removeChild(signUp)
+            loginScreen.removeChild(logIn)
+            // Set the text content of the paragraph
+            loginTitle.textContent = `Welcome ${username}!`;
+                deleteUser = document.createElement('button')
+            deleteUser.textContent = 'Delete Account';
+            deleteUser.addEventListener('click', async () => {
+            // Handle the logic to delete the user's account
+            const deleteResponse = await fetch(`/api/users/removeAccount?email=${emailText.value}&password=${passwordText.value}&nickname=${usernameText.value}`, {
+            method: 'DELETE'
+            });
 
-        if (deleteResponse.ok) {
-          // Update the UI or perform any other actions after successful deletion
-          console.log('User account deleted successfully.');
-        } else {
-          console.error('Error deleting user account:', deleteResponse.statusText);
-        }
-
-      });
-
-      updateButton.addEventListener('click' , async() => {
-        const updateResponse = await fetch(`/api/users/updatePassword?email=${emailText.value}&password=${passwordText.value}&nickname=${usernameText.value}&newPassword=${passwordText.value}`, {
-            method: 'POST'
-          });
-          if(updateResponse.ok){
+            if (deleteResponse.ok) {
             // Update the UI or perform any other actions after successful deletion
-            console.log('Password updated.');
-            loginTitle.textContent = `${usernameText.value}, your password has been changed to: ${passwordText.value}`;
-        }
-      })
+            console.log('User account deleted successfully.');
+            } else {
+            console.error('Error deleting user account:', deleteResponse.statusText);
+            }
+            });
+
+            updateButton.addEventListener('click' , async() => {
+            const updateResponse = await fetch(`/api/users/updatePassword?email=${emailText.value}&password=${passwordText.value}&nickname=${usernameText.value}&newPassword=${passwordText.value}`, {
+                method: 'POST'
+            });
+            if(updateResponse.ok){
+                // Update the UI or perform any other actions after successful deletion
+                console.log('Password updated.');
+                loginTitle.textContent = `${usernameText.value}, your password has been changed to: ${passwordText.value}`;
+            } 
+            })
+        
 
 
 
@@ -193,7 +242,10 @@ try{
         loginScreen.appendChild(disableButton)
       }
 
-      
+      //Calls on display lists
+    await loadLists();
+
+    
 
     }else{
         const incorrect = document.createElement('p')
@@ -201,14 +253,13 @@ try{
         
     }
 
-    //Calls on display lists
-    await loadLists();
-
+} 
+    
 }catch (error){
     console.error('Error: ', error);
 }
-})
 
+})
 
 
 //logout
@@ -230,6 +281,9 @@ logOut.addEventListener('click', () => {
         loginScreen.removeChild(enableButton)
         loginScreen.removeChild(disableButton)
     }
+
+    //Change loggedIn status
+    isLoggedIn = true
 
     //re-appends them in correct order
     loginScreen.appendChild(emailText)
@@ -324,7 +378,6 @@ try{
 const searchHeroes = async () => {
     const searchText = search.value
     const searchCriteria = document.querySelector('input[name="searchTopic"]:checked').value;
-    console.log(searchCriteria)
         try{
 
             //resets heroview
@@ -344,6 +397,23 @@ const searchHeroes = async () => {
                                 <td>${data.Publisher}</td>
                                 <td>${data.power}</td>
                             `;
+
+                            // search line
+                            const searchLine = data.Publisher + ' ' + data.name
+
+                            // Add a DDg search button to the row button to the row
+                            const searchButtonDDG = document.createElement('button');
+                            searchButtonDDG.textContent = 'Search DDG';
+                            searchButtonDDG.addEventListener('click', () => {
+                            // Call a function to perform DDG search with the hero name
+                            performDDGSearch(searchLine);
+                            });
+
+                             // Append the button to the row
+                            const cell = document.createElement('td');
+                            cell.appendChild(searchButtonDDG);
+                            row.appendChild(cell);
+
     
                             row.querySelectorAll('td').forEach(td =>{
                                 td.classList.add('centered-text');
@@ -367,25 +437,39 @@ searchSubmit.addEventListener('click', () => {
 
 });
 
+// Function to perform DDG search with the hero name
+function performDDGSearch(heroName) {
+    // You can use the heroName parameter to perform the DDG search
+    // Example: open a new window or redirect to DDG search URL
+    const ddgSearchURL = `https://duckduckgo.com/?q=${encodeURIComponent(heroName)}`;
+    window.open(ddgSearchURL, '_blank');
+}
+
+
 
 // Loading lists
 const loadLists = async () => {
     const username = usernameText.value;
     try {
-        console.log('Runnning load list')
 
         const response = await fetch('api/superheroes/allLists');
         if (response.ok) {
             const lists = await response.json(); // Await the json() promise
 
+            // Sort the lists by lastModified timestamp in descending order
+            const sortedLists = Object.entries(lists)
+                .sort(([key1, list1], [key2, list2]) => {
+                    return list2.lastModified - list1.lastModified;
+                })
+                .slice(0, 15)
+                .reverse();
+
             //Clears the table
             listTitle.innerHTML=''
 
-            // Extract the first ten entries
-            const firstTenEntries = Object.entries(lists).slice(0, 15);
 
             //TO-DO Work on getting listTitle changes to apply after ratings.
-            firstTenEntries.forEach(([listkey, list]) => {
+            sortedLists.forEach(([listkey, list]) => {
                 if (list.status == 'public') {
                     // Add List to listView
                     const row = document.createElement('tr');
@@ -414,9 +498,10 @@ const loadLists = async () => {
                     if (ratingInfo.includes(list.listName) && ratingInfo.includes(ratingChoice.value)) {
                         // Check if the row matches the expected format
                         listTitle.removeChild(row);
-                        row.innerHTML = `<td>${list.status} + ': ' + ${list.listName}   -   ${ratingText.value}/5  -   ${review.value}</td>`;
+                        row.innerHTML = `<td>${list.status} :  ${list.listName}   -   ${ratingText.value}/5  -   ${review.value}</td>`;
                         listTitle.appendChild(row);
                     }
+
             });
 
                 }
@@ -453,15 +538,13 @@ const loadLists = async () => {
                             listTitle.removeChild(row);
                             row.innerHTML = `<td>${list.status} :   ${list.listName}   -   ${ratingText.value}/5  -   ${review.value}</td>`;
                             listTitle.appendChild(row);
-                    }
+
+                        }
             });
 
                         }
                 }
                 
-
-
-
             });
         } else {
             console.error('Error loading lists: Response not OK', response);
@@ -591,15 +674,91 @@ const showSuperheroesInList = async (listName) => {
 }
 
 //how to tell when a list has been clicked
-listView.addEventListener('click', function(event){
-    let select = deleteDrop.value
-    showSuperheroesInList(select)
+// Add a click event listener to listTitle rows
+listTitle.addEventListener('click', async (event) => {
+    const targetRow = event.target.closest('tr');
 
+    if (targetRow) {
+        // Extract listName from the clicked row
+        const rowContent = targetRow.textContent.trim();
+        const listNamePrefix = 'private: ';
+        let listName;
+
+        if (rowContent.startsWith(listNamePrefix)) {
+            listName = rowContent.slice(listNamePrefix.length);
+            
+        } else {
+            // Handle the case where the format is unexpected
+            console.error('Unexpected row format:', rowContent);
+            return;
+        }
+
+        try {
+            const encodedListName = encodeURIComponent(listName);
+            const response = await fetch(`/api/superheroes/custom/${encodedListName}/superhero-ids`);
+            
+            if (response.ok) {
+                const listElements = await response.json();
+
+                const heroesResponse = await fetch(`/api/superheroes/idSearch/${encodedListName}`, {
+                    method: 'POST',  
+                });
+
+                if(heroesResponse.ok){
+                    const heroes = await heroesResponse.json()
+                    const heroElements = heroes.updatedList.elements
+
+                // Display the elements in heroView
+                heroView.innerHTML = ''; // Clear existing content
+                Object.keys(heroElements).forEach((key) => {
+                    const element = heroElements[key];
+                    const listItem = document.createElement('li');
+                    listItem.textContent = 'ID: ' + element.id + ' | Name: ' + element.name + ' | Race: ' + element.Race + ' | Publisher: ' + element.Publisher + ' | Powers: ' + element.powers;
+
+
+                    //list heroes Option
+                    const newHeroOption = document.createElement('option')
+                    newHeroOption.textContent = element.name
+                    newHeroOption.value = element.name
+                    listHeroes.appendChild(newHeroOption)
+
+
+                    // search line
+                    const searchLine = element.Publisher + ' ' + element.name
+
+                    // Add a DDg search button to the row button to the row
+                    const searchButtonDDG = document.createElement('button');
+                    searchButtonDDG.textContent = 'Search DDG';
+                    searchButtonDDG.addEventListener('click', () => {
+                    // Call a function to perform DDG search with the hero name
+                    performDDGSearch(searchLine);
+                    });
+
+                    // Append the button to the row
+                    const cell = document.createElement('td');
+                    cell.appendChild(searchButtonDDG);
+                    listItem.appendChild(cell);
+
+
+                    heroView.appendChild(listItem);
+                });
+
+            }
+
+
+
+
+            } else {
+                console.error('Error fetching list elements:', response.statusText);
+            }
+        } catch (error) {
+            console.error('Error fetching list elements:', error);
+        }
+    }
 });
 
 //how to add superheroes to a list
 addListButton.addEventListener('click', function(event){
-    let select = deleteDrop.value
     let searchText = search.value
     const searchCriteria = document.querySelector('input[name="searchTopic"]:checked').value;
     let useList = retrieveLists(select)
@@ -617,63 +776,53 @@ addListButton.addEventListener('click', function(event){
                 `;
 
         }
-
-    
-
-   
     }catch (error) {
         console.error('Error:', error);
     }
 })
 
-
-//AddResults method
-const addResults = async (listname, result) => {
+async function retrieveIDs(listName){
     try{
-        const response = fetch(`/api/superheroes/custom-Idlists?listName=${listname}&superheroIds=${result}`);
-        const listTab = (await response).json()
-        return listTab
-
-
-    }catch (error) {
-    console.error('Error:', error);
-    }
-}
-
-//how to delete superheroes from a list 
-deleteListButton.addEventListener('click', function(event){
-    let select = deleteDrop.value
-    let useList = retrieveLists(select)
-    try{
-        const response =  fetch(`/api/superheroes/search_and_combined?pattern=${searchText}&field=${searchCriteria}&n=${1}`);
-        if (response.ok){
-            const dataSet = response.json()
-            deleteHeroes(useList, dataSet)
-
+        const response = await fetch(`/api/superheroes/custom/${listName}/superhero-Ids`);
+        if(response.ok){
+            const data = await response.json()
+            console.log(data)
+            return data
         }
-    
-
-   
     }catch (error) {
         console.error('Error:', error);
-    }
-    
-    
-});
+        }
+}
 
 
-//delete heroes method 
-const deleteHeroes = async (listName, result) =>{
+
+//how to delete superheroes from a list 
+/*deleteListButton.addEventListener('click', async function(event){
+    const removeHero = listHeroes.value
+    const list = deleteDrop.value
+    const superheroIds = retrieveIDs(list)
+    const removalIDs = 
     try{
-        const response = fetch(`/api/superheroes/superhero_search/listName=${listName}&superheroIds=${result}`);
-        const listTab = (await response).json()
-        listName.remove(listTab)
-        return listTab
+        const deleteResponse = await fetch(`/api/superheroes/removeIDs/${list}`,{
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                superheroIds: superheroIds,
+                removalIDs: removalIDs,
+            }),
+        });
+        if(deleteResponse.ok){
+            const data = deleteResponse.json()
+        }
 
     }catch (error) {
-    console.error('Error:', error);
-    }
-}
+        console.error('Error:', error);
+        }
+    
+});*/
+
 
 
 //function to delete lists
