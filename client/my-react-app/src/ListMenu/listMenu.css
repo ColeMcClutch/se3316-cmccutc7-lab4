@@ -62,3 +62,23 @@
 .centered-text {
     text-align: left;
 }
+.uPOptions{
+    display: flex;
+}
+
+#ratingOptions{
+    display: flex;
+}
+
+#rateButton{
+    display: flex;
+    border: 1px solid;
+    background-color: blue;
+    color: white;
+}
+#logoutButton{
+    display: flex;
+    border: 1px solid;
+    background-color: blue;
+    color: white;
+}
