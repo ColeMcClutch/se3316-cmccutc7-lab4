@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import './login.css';
+import { useNavigate } from 'react-router-dom';
+
 
 const Login = () => {
   // State for input values
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const navigate = useNavigate();
 
  
 
@@ -14,12 +17,22 @@ const Login = () => {
     console.log(email);
     console.log(password);
     console.log(username);
+    if(email ==''){
+      alert('Please enter an email')
+    }
+    if(password ==''){
+      alert('Please enter a password')
+    }
+    if(username ==''){
+      alert('Please enter a username')
+    }else{
     try {
       console.log('Logging in with:', { username, email, password });
       const loginResponse = await fetch(`/api/users/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Accept': 'application/json'
       },
       body: JSON.stringify({
       email,
@@ -28,13 +41,24 @@ const Login = () => {
       }),
     });
       if (loginResponse.ok) {
-        console.log('Login successful');
+        //if admin logs in
+        if(username=='admin'){
+          console.log('Welcome Admin');
+          navigate('/admin'); // Navigate to the admin view
+
+        }else{//Other users
+          console.log('Login successful');
+          navigate('/authenticated'); // Navigate to the authenticated view
+        }
+
       } else {
-        console.log('Login failed:');
+        console.log('Login failed: ', loginResponse.status + loginResponse.statusText);
+        console.log('If Account is diabled, please contactor the admin user');
       }
     } catch (error) {
       console.error('Error during login:', error);
     }
+  }
   };
 
   // Function to handle signup button click
