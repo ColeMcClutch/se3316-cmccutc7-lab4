@@ -1,16 +1,22 @@
+// App.js or main component
 import React from 'react';
-import Login from './login/login.js'; // Capitalized
-import AdminPage from  './adminMainPage/adminMainPage.js';
-import ListMenu from  './ListMenu/listMenu.js';
-import { BrowserRouter as Router, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import Login from './login/login.js';
+import AuthenticatedView from './AuthenticatedView/AuthenticatedView.js';
+import AdminView from './AdminView/AdminView.js';
+
 
 const App = () => {
   return (
-    <div>
-      <Login /> {/* Capitalized */}
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<Login />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/authenticated" element={<AuthenticatedView />} />
+        <Route path="/admin" element={<AdminView />} />
+      </Routes>
+    </Router>
   );
 };
 
 export default App;
-/*<ListMenu /> {/* Capitalized */
