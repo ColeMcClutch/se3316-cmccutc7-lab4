@@ -1,0 +1,147 @@
+.title {
+    font-size: 48px;
+    color: blue;
+    font-style: italic;
+    font-family: 'Georgia, "Times New Roman", Times, serif';
+    background-color: white;
+  }
+  
+  .searchMethods {
+    background-color: cyan;
+    padding: 30px;
+    right: 50px;
+    display: flex;
+    border: 1px solid;
+  }
+
+  body{
+    background-color: gray;
+}
+
+.searchBar{
+    background-color: white;
+    display: flex;
+}
+
+.AdminControls{
+    display: flex;
+}
+
+.InspectorControls{
+    display: flex;
+}
+#heroView{
+    font-size: 16px;
+    height: 1000px;
+    border: 1px solid;
+    background-color: cadetblue;
+    width: 100%
+    
+  }
+#listView{
+    font-size: 16px;
+    height: auto;
+    border: 1px solid;
+    background-color: cornflowerblue;
+    display: flex;
+  }
+.clicker{
+    display: inline-flex;
+    background-color: cyan;
+    border: 1px solid;
+}  
+#creator{
+    background-color: blue;
+    color: white;
+    border: 1px solid;
+}
+#subtitles{
+    display: flex;
+}
+.subtitle{
+    margin-right: 200px;
+}
+#publisherButton{
+    background-color: blue;
+    color: white;
+    border: 1px solid;
+}
+.centered-text {
+    text-align: left;
+}
+
+#addCustom{
+    border: 1px solid;
+}
+
+#deleteCustom{
+    border: 1px solid;
+}
+
+#deleteSubmit{
+    border: 1px solid;
+}
+#deleteSubmit{
+    border: 1px solid;
+}
+
+#searchSubmit{
+    border: 1px solid;
+}
+#enableUser{
+    display: flex;
+    border: 1px solid;
+    background-color: blue;
+    color: white;
+
+}
+
+#updatePassword{
+    display: flex;
+    border: 1px solid;
+    background-color: blue;
+    color: white;
+
+}
+
+#disableUser{
+    display: flex;
+    border: 1px solid;
+    background-color: blue;
+    color: white;
+
+}
+
+
+#ratingOptions{
+    display: flex;
+}
+
+#rateButton{
+    display: flex;
+    border: 1px solid;
+    background-color: blue;
+    color: white;
+}
+#logoutButton{
+    display: flex;
+    border: 1px solid;
+    background-color: blue;
+    color: white;
+}
+
+#heroView {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  #heroView th, #heroView td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+  }
+  
+  .subtitle {
+    font-weight: bold;
+  }
+  
