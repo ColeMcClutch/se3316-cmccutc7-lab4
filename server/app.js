@@ -13,7 +13,6 @@ const users = new nodeStorage("users/users.json")
 //Express application
 const express = require('express');
 const app = express();
-const cors = require('cors');
 
 const port = 3000;
 app.use(express.static('../client'));
@@ -23,8 +22,8 @@ const superheroPowers =require('./superheroes/superhero_powers.json')
 // Set up middleware for security
 app.use(helmet()); // Helmet helps secure your Express apps by setting various HTTP headers
 app.use(express.json()); // Parse JSON request bodies
-app.use(cors());
-
+// Enable trust for proxy headers
+app.set('trust proxy', true);
 // Setting up front-end code
 app.use('/', express.static('../client'));
 app.use(bodyParser.urlencoded({ extended: true })); // Parse URL-encoded bodies
@@ -196,6 +195,7 @@ app.post('/api/superheroes/new-lists/:listName/:description/:status/:owner', (re
         return res.status(400).json({ error: 'Invalid input data' });
     }
     if (store.get("lists." + listName)) {
+        console.log('error here')
         return res.status(400).json({ error: 'Custom list name already exists' });
     }
     // Create a new custom list object with a name, description, and an empty array to hold elements.
@@ -428,6 +428,7 @@ function generateVerificationToken() {
   app.post('/api/users/login', (req, res) => {
     try{
         const { email, password, nickname } = req.body;
+        console.log('hello')
   
         if(users == null){
             return res.status(401).json({error: 'No users in database'})
@@ -436,6 +437,7 @@ function generateVerificationToken() {
         
   
         if (!user || user.disabled==true) {
+            console.log('Disabled Account. Please contact Administrator')
         return res.status(401).json({ error: 'Invalid credentials or account disabled' });
         }
         if (!user.verified==true) {
@@ -455,8 +457,15 @@ function generateVerificationToken() {
 //Account disabling
 app.post('/api/users/disable', (req,res) => {
 try{
-    const { email, password, nickname } = req.query;
+    const { email, password, nickname } = req.body;
     const user = users.get('User: ' + nickname)
+    if (!user) {
+        return res.status(401).json({ error: 'User not found' });
+    }
+    
+    if (user.disabled) {
+        return res.status(401).json({ error: 'Account is disabled' });
+    }
     user.disabled=true
     console.log(user)
     res.status(201).json({message: `Account with ${email} has been disabled. Goodbye ${nickname}!` })
@@ -467,8 +476,15 @@ try{
 //Account disabling
 app.post('/api/users/enable', (req,res) => {
     try{
-        const { email, password, nickname } = req.query;
+        const { email, password, nickname } = req.body;
         const user = users.get('User: ' + nickname)
+        if (!user) {
+            return res.status(401).json({ error: 'User not found' });
+        }
+        
+        if (user.disabled) {
+            return res.status(401).json({ error: 'Account is disabled' });
+        }
         user.disabled=false
         console.log(user)
     
@@ -495,8 +511,7 @@ app.delete('/api/users/removeAccount', (req, res) => {
 });
 //Update password function
 app.post('/api/users/updatePassword', (req,res) => {
-    const { email, password, nickname, newPassword } = req.query;
-    //gathers user
+    const { email, password, nickname, newPassword } = req.body;
     // Gathers user
     const userKey = 'User: ' + nickname;
     const user = users.get(userKey);
