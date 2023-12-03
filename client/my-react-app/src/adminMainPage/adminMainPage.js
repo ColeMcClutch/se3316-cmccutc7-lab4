@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './adminMainPage.css';
 import { useNavigate } from 'react-router-dom';
 
@@ -26,6 +26,33 @@ const AdminMenu = () => {
   const [searchCriteria, setSearchCriteria] = useState('name'); // Default search criteria
   const [heroesData, setHeroesData] = useState([]);
   const [listData, setListData] = useState([])
+  const [heroElements, setHeroElements] = useState([]);
+  const [selectedHeroId, setSelectedHeroId] = useState('');
+  const [listHeroes, setListHeroes] = useState('');
+
+
+
+
+  
+  const fetchListData = async () => {
+    try{
+        const response = await fetch('/api/superheroes/allLists');
+        if(response.ok){
+          const lists = await response.json()
+          setListData(lists)
+        } else {
+          console.error('Error fetching lists:', response);
+        }
+    }catch (error) {
+      console.error('Error fetching lists:', error);
+    }
+  }
+
+  //Fetches list data
+  useEffect(() => {
+    fetchListData();
+  }, [])
+
 
   // Event handlers (replace with your logic)
   const handleSearch = async () => {
@@ -48,67 +75,131 @@ const AdminMenu = () => {
   };
 
   // Function to perform DDG search with the hero name
-  const performDDGSearch = (searchLine) => {
-    // Your DDG search logic here
-    console.log('Performing DDG search for:', searchLine);
+  const performDDGSearch = (searchPublisher, heroName) => {
+    const searchQuery = `${searchPublisher} ${heroName}`;
+    const searchUrl = `https://duckduckgo.com/?q=${encodeURIComponent(searchQuery)}`;
+    window.open(searchUrl, '_blank');
+    console.log('Performing DDG search for:', searchQuery);
   };
 
 
   const handleCreateList = async () => {
-    console.log(listName)
-    console.log(listType)
-    console.log(username2)
-    try {
-      const response = await fetch(`/api/superheroes/new-lists/${encodeURIComponent(listName)}/${encodeURIComponent(listDescription)}/${encodeURIComponent(listType)}/${encodeURIComponent(username2)}`, {
-          method: 'POST',  
-      })
-      if (response.ok) {
-          setListName('')
-
-          // Create a new row element
-          const newRow = document.createElement('tr');
-          newRow.innerHTML = `<td>${listType + ': ' + listName}</td>`;
-
-           // Debugging: log the previous state
-      console.log('Previous listTitle:', listTitle);
+    console.log(listName);
+  console.log(listType);
+  console.log(username2);
+  try {
+    const response = await fetch(`/api/superheroes/new-lists/${encodeURIComponent(listName)}/${encodeURIComponent(listDescription)}/${encodeURIComponent(listType)}/${encodeURIComponent(username2)}`, {
+      method: 'POST',
+    });
+    if (response.ok) {
+      setListName('');
 
       // Update listTitle by adding the new row to the existing rows
-      setListTitle((prevRows) => [...prevRows, newRow]);
+      setListTitle((prevRows) => [...prevRows, { type: listType, name: listName }]);
 
-      // Debugging: log the updated state
-      console.log('Updated listTitle:', listTitle);
+      // Update deleteDropdown
+      setDeleteDropdown((prevOptions) => [...prevOptions, { textContent: listName, value: listName }]);
 
-          //Delete Option
-          const newOptionDelete = document.createElement('option')
-          newOptionDelete.textContent = listName
-          newOptionDelete.value = listName
-          setDeleteDropdown(newOptionDelete)
-          //Recovery Option
-          const newOptionRating = document.createElement('option');
-          newOptionRating.textContent = listName
-          newOptionRating.value = listName
-          setRatingChoice(newOptionRating)
-          
-      } else {
-          console.error('Failed to create a new list')
-          return null
-      }
+      // Update ratingChoice
+      setRatingChoice((prevOptions) => [...prevOptions, { textContent: listName, value: listName }]);
+
+    } else {
+      console.error('Failed to create a new list');
+      return null;
+    }
   } catch (error) {
-      console.error('Error: ', error)
+    console.error('Error: ', error);
   }
-  };
+}
 
-  const handleDeleteList = () => {
+
+  const handleDeleteList = async () => {
     // Implement delete list logic
+    try {
+      const removal = deleteDropdown;
+  
+      if (!removal) {
+        console.error('Please select a list to delete.');
+        return;
+      }
+  
+      const response = await fetch(`/api/superheroes/lists/${removal}`, {
+        method: 'DELETE',
+      });
+  
+      if (response.ok) {
+        // Remove the selected list from the dropdown
+        // Note: Update this logic based on how you're managing the list of options
+        setDeleteDropdown('');
+      } else if (response.status === 404) {
+        console.error(`List '${removal}' not found`);
+      } else {
+        console.error('Failed to delete the list');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
   };
 
   const handleAddHeroToList = () => {
     // Implement add hero to list logic
   };
 
-  const handleDeleteHeroFromList = () => {
+  const heroesMapping = {};
+      heroesData.forEach((hero) => {
+      heroesMapping[hero.name] = hero.id;
+      });
+
+  //Next part to work on. Currenlty getting error 500
+  const handleDeleteHeroFromList = async() => {
     // Implement delete hero from list logic
+    try {
+      // Check if a hero is selected
+      if (!selectedHeroId) {
+        console.error('Please select a hero to remove from the list.');
+        return;
+      }
+
+
+      
+      const selectedHero = heroesMapping[selectedHeroId]
+
+      // Call the API to remove the hero from the list
+      const response = await fetch(`/api/superheroes/removeIDs/${deleteDropdown}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          removalIDs: [selectedHero],
+        }),
+      });
+
+      if (response.ok) {
+        // Handle success (update UI, show message, etc.)
+        console.log('Hero removed from the list successfully');
+      } else {
+        console.error('Failed to remove hero from the list:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
   };
+
+  const publisherDisplay = async () => {
+    try{
+      const response = await fetch('/api/superheroes/publisher_info')
+      if (response.ok){
+          const publishers = await response.json();
+          alert(`Publishers: ${publishers.join(', ')}`);
+      } else {
+          console.error('Request failed! Status: ', response)
+      }
+      } catch (error){
+          console.error('Error: ', error);
+      }
+  }
+  
 
   const updatePassword = async () => {
     try {
@@ -137,6 +228,8 @@ const AdminMenu = () => {
     }
   }
 
+
+  //Enable User method
   const enableUser = async() => {
     console.log(email)
     console.log(password)
@@ -187,9 +280,82 @@ const AdminMenu = () => {
     //Rating List method
   }
 
+  //Logout
   const logOut = () => {
     navigate('/login')
   }
+
+  // Lists on load
+useEffect(() => {
+  // Fetch list data and update listTitle when the component mounts
+  const fetchData = async () => {
+    try {
+      const response = await fetch('/api/superheroes/allLists');
+      if (response.ok) {
+        const lists = await response.json();
+
+        // Process the lists and update listTitle
+        const processedLists = Object.entries(lists).map(([key, list]) => {
+          if (list.status === 'public' || (list.status === 'private' && list.owner === 'admin')) {
+            return (
+              <tr key={key}>
+                <td>{list.status + ': ' + list.listName}</td>
+                <td>
+                <button id = 'expandButton' onClick={() => alertList(list)}>
+                    Show Details
+                  </button>
+                </td>
+              </tr>
+            );
+          }
+          return null;
+        });
+
+        setListTitle(processedLists.filter(Boolean)); // Filter out null values
+      } else {
+        console.error('Error loading lists: Response not OK', response);
+      }
+    } catch (error) {
+      console.error('Error loading lists:', error);
+    }
+  };
+
+  fetchData(); // Call the fetchData function when the component mounts
+}, [username]);
+
+const handleListDrop = async (listName) => {
+  console.log('Clicked on:', listName);
+  try {
+    const encodedListName = encodeURIComponent(listName);
+    const response = await fetch(`/api/superheroes/custom/${encodedListName}/superhero-ids`);
+
+    if (response.ok) {
+      const listElements = await response.json();
+      const heroesResponse = await fetch(`/api/superheroes/idSearch/${encodedListName}`, {
+        method: 'POST',
+      });
+
+      if (heroesResponse.ok) {
+        const heroes = await heroesResponse.json();
+        const heroElements = heroes.updatedList.elements;
+        console.log(heroElements)
+        setHeroesData(Object.values(heroElements))
+
+        // TODO: Additional logic for handling hero elements in React state
+      }
+    } else {
+      console.error('Error fetching list elements:', response.statusText);
+    }
+  } catch (error) {
+    console.error('Error fetching list elements:', error);
+  }
+
+}
+
+const alertList = async(list) => {
+  alert(`${list.listName} Creator: ${list.owner}, Description: ${list.description} Status: ${list.status}`);
+}
+
 
   return (
     <div>
@@ -247,8 +413,19 @@ const AdminMenu = () => {
           <select
           id="ratingChoice"
           value={ratingChoice}
-          onChange={(e) => setListType(e.target.value)}
+          onChange={(e) => setRatingChoice(e.target.value)}
         >
+         {Object.entries(listData).map(([key, list]) => {
+          // Check if the list is public or if the user is the owner for private lists
+          if (list.status === 'public' || (list.status === 'private' && list.owner === username)) {
+            return (
+              <option key={key} value={list.listName}>
+                {list.listName}
+              </option>
+            );
+          }
+          return null;
+        })}
         </select>
 
 
@@ -371,22 +548,45 @@ const AdminMenu = () => {
         <label htmlFor="deleteDropdown">Select list:</label>
         <select
           id="deleteDropdown"
-          value={selectedList}
-          onChange={(e) => setSelectedList(e.target.value)}
+          value={deleteDropdown}
+          onChange={(e) => {
+          const selectedListName = e.target.value; // Use the updated value
+          setDeleteDropdown(selectedListName);
+          handleListDrop(selectedListName); // Pass the selected value to the function
+          }}
         >
-          {/* Inject list data here*/ }
+          {Object.entries(listData).map(([key, list]) => {
+          // Check if the list is public or if the user is the owner for private lists
+          if (list.status === 'public' || (list.status === 'private' && list.owner === 'admin')) {
+            return (
+              <option key={key} value={list.listName}>
+                {list.listName}
+              </option>
+            );
+          }
+          return null;
+        })}
+
         </select>
+
         <button type="button" id="deleteSubmit" onClick={handleDeleteList}>
           Delete List
         </button>
 
-        <button type="button" id="publisherButton">
+        <button type="button" id="publisherButton"onClick={publisherDisplay}>
           Publishers
         </button>
 
         <label htmlFor="listHeroes">Heroes in List:</label>
-        <select id="listHeroes">
-          {/* Inject data here*/ }
+        <select id="listHeroes"
+          value={selectedHeroId}
+          onChange={(e) => setSelectedHeroId(e.target.value)}
+        >
+          {heroesData.map((hero) => (
+            <option key={hero.id} value={hero.id}>
+              {hero.name}
+            </option>
+            ))}
         </select>
 
         <button type="button" id="addCustom" onClick={handleAddHeroToList}>
@@ -400,19 +600,11 @@ const AdminMenu = () => {
 
       <table id="listView">
         <h2>Lists: </h2>
-        <tbody id="listTitle">{/* Inject List data here*/ }</tbody>
+        <tbody id="listTitle" >{listTitle}
+        </tbody>
       </table>
 
       <table id="heroView">
-  <thead>
-    <tr>
-      <th className="subtitle">ID</th>
-      <th className="subtitle">Name</th>
-      <th className="subtitle">Race</th>
-      <th className="subtitle">Publisher</th>
-      <th className="subtitle">Powers</th>
-    </tr>
-  </thead>
   <tbody id="subtitles">
     {heroesData.map((hero) => (
       <tr key={hero.id}>
@@ -420,8 +612,15 @@ const AdminMenu = () => {
         <td>{'Name: ' + hero.name}</td>
         <td>{'Race: ' + hero.Race}</td>
         <td>{'Publisher: ' + hero.Publisher}</td>
-        <td>{'Powers: ' + hero.power}</td>
-      </tr>
+        <td>{'Powers: ' + hero.powers}</td>
+        <td>
+            <button
+              id = "DDGButton" onClick={() => performDDGSearch(hero.Publisher , hero.name)}
+            >
+              Search DDG
+            </button>
+          </td>
+        </tr>
     ))}
   </tbody>
 </table>
