@@ -141,7 +141,23 @@
     text-align: left;
   }
   
+#subtitles{
+    display: block;
+}
+
+#subtitles tr{
+    display: block;
+}
+
+
   .subtitle {
     font-weight: bold;
   }
-  
+
+#DDGButton{
+    width: 100%
+}
+
+#expandButton{
+    width:100%
+}
