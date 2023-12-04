@@ -7,7 +7,7 @@ const AdminMenu = () => {
   // State variables
   const [searchTerm, setSearchTerm] = useState('');
   const [listName, setListName] = useState('');
-  const [listType, setListType] = useState('public');
+  const [listType, setListType] = useState('private');
   const [selectedList, setSelectedList] = useState('');
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -30,7 +30,27 @@ const AdminMenu = () => {
   const [selectedHeroId, setSelectedHeroId] = useState('');
   const [listHeroes, setListHeroes] = useState('');
 
-
+  const giveAdmin = async () => {
+    try{
+      const response = await fetch('/api/users/giveAdmin',{
+        method: 'POST', 
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          password,
+          nickname:username
+        })
+      })
+      if(response.ok){
+        console.log(`Admin privileges given to ${email}`);
+        alert('Admin privileges given. Relogin for control. If issue occurs contact admin')
+      }
+    }catch (error) {
+      console.error('Error fetching lists:', error);
+    }
+  }
 
 
   
@@ -141,43 +161,94 @@ const AdminMenu = () => {
     }
   };
 
-  const handleAddHeroToList = () => {
+  const handleAddHeroToList = (hero) => {
     // Implement add hero to list logic
+    const listName = deleteDropdown
+
+    if (!listName) {
+      alert('Please select a list');
+      return;
+    }
+  
+    // Fetch the current list of superhero IDs from the backend
+    fetch(`/api/superheroes/custom-Idlists/${listName}`, {
+      method: 'POST'
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`Failed to fetch current list: ${response.statusText}`);
+        }
+        return response.json();
+      })
+      .then((currentList) => {
+        console.log(currentList);
+  
+        // Check if currentList.superheroIds is present and is iterable (an array)
+        const existingIds = Array.isArray(currentList.elements)
+          ? currentList.superheroIds
+          : currentList.superheroIds
+          ? [currentList.superheroIds]
+          : [];
+        console.log(existingIds)
+  
+        // Append the new hero's ID to the existing list
+        const updatedList = {
+          superheroIds: [...existingIds, hero.id],
+        };
+        console.log(updatedList)
+        // Send a POST request to update the list on the backend
+        return fetch(`/api/superheroes/custom-Idlists/${listName}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(updatedList),
+        });
+      })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`Failed to add hero to list: ${response.statusText}`);
+        }
+        return response.json();
+      })
+      .then((result) => {
+        console.log(result.message); // Success message
+      })
+      .catch((error) => {
+        console.error(error);
+        alert('Failed to add hero to list. Please try again.');
+      });
   };
 
-  const heroesMapping = {};
-      heroesData.forEach((hero) => {
-      heroesMapping[hero.name] = hero.id;
-      });
-
+ 
   //Next part to work on. Currenlty getting error 500
   const handleDeleteHeroFromList = async() => {
     // Implement delete hero from list logic
     try {
       // Check if a hero is selected
-      if (!selectedHeroId) {
+      if (!selectedHeroId || !deleteDropdown) {
         console.error('Please select a hero to remove from the list.');
         return;
       }
-
-
+      console.log(selectedHeroId)
+      console.log(deleteDropdown)
       
-      const selectedHero = heroesMapping[selectedHeroId]
-
+  
       // Call the API to remove the hero from the list
       const response = await fetch(`/api/superheroes/removeIDs/${deleteDropdown}`, {
-        method: 'POST',
+        method: 'DELETE', 
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          removalIDs: [selectedHero],
+          removalID: selectedHeroId,
         }),
       });
-
+  
       if (response.ok) {
         // Handle success (update UI, show message, etc.)
         console.log('Hero removed from the list successfully');
+        console.log(response)
       } else {
         console.error('Failed to remove hero from the list:', response.statusText);
       }
@@ -186,6 +257,7 @@ const AdminMenu = () => {
     }
   };
 
+  //Publisher Display Button
   const publisherDisplay = async () => {
     try{
       const response = await fetch('/api/superheroes/publisher_info')
@@ -253,6 +325,7 @@ const AdminMenu = () => {
     }
   }
 
+  //Disable a user
   const disableUser = async() => {
     console.log(email)
     console.log(password)
@@ -274,10 +347,6 @@ const AdminMenu = () => {
     }else{
       console.log('Failed to Disable')
     }
-  }
-
-  const rateList = () => {
-    //Rating List method
   }
 
   //Logout
@@ -353,8 +422,33 @@ const handleListDrop = async (listName) => {
 }
 
 const alertList = async(list) => {
-  alert(`${list.listName} Creator: ${list.owner}, Description: ${list.description} Status: ${list.status}`);
+  alert(`${list.listName} Creator: ${list.owner}, Description: ${list.description} Status: ${list.status}  Rating: ${list.rating}  Review: ${list.review}`);
 }
+
+//Rating lists
+const rateList = async (list) => {
+  try {
+    const response = await fetch(`http://localhost:3000/api/superheroes/rateList/${list}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        rating: ratingText,
+        review: review,
+      }),
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      console.log(`${list} has a rating of: ${result.message}`);
+    } else {
+      console.error('Failed to rate list:', response.statusText);
+    }
+  } catch (error) {
+    console.error('Error:', error);
+  }
+};
 
 
   return (
@@ -362,6 +456,10 @@ const alertList = async(list) => {
       <div className="title">
         <h1>Cole's List of Heroes</h1>
       </div>
+
+      <button type="button" id="publisherButton"onClick={publisherDisplay}>
+            Publishers
+            </button>
 
       <div className = "uPOptions">
       Use the textboxes for updating passwords/ disabling users
@@ -406,7 +504,14 @@ const alertList = async(list) => {
             <button type="button" id="disableUser" onClick={disableUser}>
             Disable User
             </button>
+
+            <button type="button" id="adminButton" onClick={giveAdmin}>
+            Give Admin controls to user
+            </button>
           </div>
+
+
+          
 
           <div className='="ratingOptions'>
 
@@ -433,7 +538,7 @@ const alertList = async(list) => {
             id = 'listRate'
             placeholder = 'Rate out of 5'
             value = {ratingText}
-            onChange={(e) => setRatingChoice(e.target.value)}
+            onChange={(e) => setRatingText(e.target.value)}
             />
 
             <input type = "text"
@@ -443,10 +548,11 @@ const alertList = async(list) => {
             onChange={(e) => setReview(e.target.value)}
             />
 
-            <button type="button" id="rateButton" onClick={rateList}>
+            <button type="button" id="rateButton" onClick={() => rateList(ratingChoice)}>
             Rate List
             </button>
 
+           
 
             <button type="button" id="logoutButton" onClick={logOut}>
             LogOut
@@ -486,9 +592,9 @@ const alertList = async(list) => {
           type="radio"
           id="raceRadioSearch"
           name="searchTopic"
-          value="race"
+          value="Race"
           checked={searchCriteria === 'race'}
-          onChange={() => setSearchCriteria('race')}
+          onChange={() => setSearchCriteria('Race')}
         />
 
         <label htmlFor="publisherRadio">Publisher</label>
@@ -496,9 +602,9 @@ const alertList = async(list) => {
           type="radio"
           id="publisherRadioSearch"
           name="searchTopic"
-          value="publisher"
+          value="Publisher"
           checked={searchCriteria === 'publisher'}
-          onChange={() => setSearchCriteria('publisher')}
+          onChange={() => setSearchCriteria('Publisher')}
         />
 
         <label htmlFor="powersRadio">Powers</label>
@@ -573,9 +679,7 @@ const alertList = async(list) => {
           Delete List
         </button>
 
-        <button type="button" id="publisherButton"onClick={publisherDisplay}>
-          Publishers
-        </button>
+        
 
         <label htmlFor="listHeroes">Heroes in List:</label>
         <select id="listHeroes"
@@ -589,9 +693,6 @@ const alertList = async(list) => {
             ))}
         </select>
 
-        <button type="button" id="addCustom" onClick={handleAddHeroToList}>
-          Add Hero to List
-        </button>
 
         <button type="button" id="deleteCustom" onClick={handleDeleteHeroFromList}>
           Delete Hero From List
@@ -618,6 +719,13 @@ const alertList = async(list) => {
               id = "DDGButton" onClick={() => performDDGSearch(hero.Publisher , hero.name)}
             >
               Search DDG
+            </button>
+          </td>
+          <td>
+            <button
+              id = 'addButton' onClick={() => handleAddHeroToList(hero, deleteDropdown)}
+            >
+              Add Hero to SelectedList
             </button>
           </td>
         </tr>

@@ -5,6 +5,8 @@ const helmet = require('helmet')
 const validator = require('validator');
 const bodyParser = require('body-parser');
 const nodemailer = require("nodemailer");
+const cors = require('cors');
+
 
 
 // Prepare Storage
@@ -23,6 +25,8 @@ const superheroPowers =require('./superheroes/superhero_powers.json')
 app.use(helmet()); // Helmet helps secure your Express apps by setting various HTTP headers
 app.use(express.json()); // Parse JSON request bodies
 // Enable trust for proxy headers
+app.use(cors()); // Enable CORS for all routes
+
 app.set('trust proxy', true);
 // Setting up front-end code
 app.use('/', express.static('../client'));
@@ -190,6 +194,9 @@ app.post('/api/superheroes/new-lists/:listName/:description/:status/:owner', (re
     const description = req.params.description;
     const status = req.params.status
     const owner = req.params.owner
+    const rating = parseFloat(req.params.rating)
+    const review = req.params.review
+
     // Validate input to prevent injection attacks and unwanted side effects
     if (typeof (listName) !== 'string' || typeof (description) !== 'string') {
         return res.status(400).json({ error: 'Invalid input data' });
@@ -205,6 +212,8 @@ app.post('/api/superheroes/new-lists/:listName/:description/:status/:owner', (re
         status,
         owner,
         elements: [],// Initialize an empty array for elements
+        rating, 
+        review
         
     };
     // Add the new list to your custom lists data structure 
@@ -213,40 +222,63 @@ app.post('/api/superheroes/new-lists/:listName/:description/:status/:owner', (re
     // Return a success response.
     res.json({ message: 'New custom list is created' });
 });
-//Save a list of superhero IDs to a given custom list
+// Save a list of superhero IDs to a given custom list
 app.post('/api/superheroes/custom-Idlists/:listName', (req, res) => {
     const listName = req.params.listName;
-    const list = store.get("lists." + listName)
-    const superheroIds = req.body.superheroIds
+    const list = store.get("lists." + listName);
+    const superheroIds = req.body.superheroIds;
+
     // Check if the custom list exists
-    //if it doesn't exist
+    // If it doesn't exist, create a new list
     if (!list) {
-        return res.status(404).json({ error: `Custom list '${listName}' not found` });
+        store.put("lists." + listName, { elements: [superheroIds] });
+        return res.json({ message: 'Superhero Ids are saved to the new list' });
     }
-    list.elements = superheroIds
-    store.put("lists." + listName, list)
-    //Success message
-    res.json({ message: 'Superhero Ids are saved to the new list' })
-});
-//Save a list of superhero IDs to a given custom list
-app.post('/api/superheroes/removeIDs/:listName', (req, res) => {
-    const listName = req.params.listName;
-    const list = store.get("lists." + listName)
-    const superheroIds = req.body.superheroIds
-    const removalIDs = req.body.removalIDs
-    // Check if the custom list exists
-    //if it doesn't exist
-    if (!list) {
-        return res.status(404).json({ error: `Custom list '${listName}' not found` });
-    }
-    // Remove elements from superheroIds that are in removalIDs
-    const updatedSuperheroIds = superheroIds.filter(id => !removalIDs.includes(id));    list.elements = superheroIds
-    list.elements = updatedSuperheroIds
-    store.put("lists." + listName, list)
-    //Success message
-    res.json({ message: 'Superhero Ids are saved to the new list' })
+
+    // Fetch existing superhero IDs from the list
+    const existingSuperheroIds = list.elements;
+
+    // Combine new superhero IDs with existing superhero IDs
+    const updatedSuperheroIds = [...existingSuperheroIds, superheroIds]
+    console.log(updatedSuperheroIds)
+
+    // Update the list with the combined superhero IDs
+    list.elements = updatedSuperheroIds;
+    store.put("lists." + listName, list);
+
+    // Success message
+    res.json({ message: 'Superhero Ids are saved to the list' });
 });
 
+// Remove superhero IDs from a given custom list
+app.delete('/api/superheroes/removeIDs/:listName', (req, res) => {
+    const listName = req.params.listName;
+    const list = store.get("lists." + listName);
+    const superheroIds = list.elements || [];
+    const removalID = req.body.removalID;
+
+    // Check if the custom list exists
+    if (!list) {
+        return res.status(404).json({ error: `Custom list '${listName}' not found` });
+    }
+
+    console.log("Before removal:", superheroIds);
+
+    // Remove the single superhero ID from the list
+    console.log(removalID);
+
+    // Use filter to create a new array excluding the removalID
+    const updatedSuperheroIds = superheroIds.filter(id => id !== removalID);
+
+    console.log("After removal:", updatedSuperheroIds);
+
+    // Update the list with the combined superhero IDs
+    list.elements = updatedSuperheroIds;
+    store.put("lists." + listName, list);
+
+    // Success message
+    res.json({ message: 'Superhero Id is removed from the list' });
+});
 
 //Get the list of superhero IDS for a custom list
 app.get('/api/superheroes/custom/:listName/superhero-ids', (req, res) => {
@@ -338,14 +370,14 @@ try{
    
     //If users is empty
     if(users==null){
-        users.put('User: ' + user.nickname, user)
+        users.put('User: ' + user.email, user)
     } else{
         //Check if email is already registered
         if (users.get('User: ' + nickname)) {
             return res.status(400).json({ error: 'User already registered' });
         }
         // Add user to the storage
-        users.put('User: ' + user.nickname, user)
+        users.put('User: ' + user.email, user)
     }   
     // Send verification email (in a real-world scenario, you would send an email with a verification link)
     
@@ -390,7 +422,7 @@ async function verifyAccount(req, email, password, nickname) {
 }
 // Verification endpoint
 app.get('/verify-email', (req, res) => {
-    const { token, nickname } = req.query;
+    const { token, nickname, email } = req.query;
     console.log('Request parameters:', req.query);
 
   
@@ -402,7 +434,7 @@ app.get('/verify-email', (req, res) => {
       const user = users.get('User: ' + nickname);
       if (user) {
         user.verified = true;
-        users.put('User: ' + nickname, user);
+        users.put('User: ' + email, user);
         res.status(200).json({ message: 'Email verified successfully' });
       }
   
@@ -527,6 +559,51 @@ app.post('/api/users/updatePassword', (req,res) => {
     
 });
 
+//Rate list function
+app.post('/api/superheroes/rateList/:listName', (req,res) => {
+    const { rating, review } = req.body;
+  const listName = req.params.listName;
+
+  // Gathers user
+  const list = store.get('lists.' + listName);
+
+  if (list) {
+
+    if (list.rating !== undefined) {
+      // If the list already has a rating, calculate the average
+      const currentRating = parseFloat(list.rating);
+      const newRating = parseFloat(rating);
+      const averageRating = (currentRating + newRating) / 2;
+
+      list.rating = averageRating.toFixed(1); // Keep one decimal place
+    } else {
+      // If the list doesn't have a rating, set the new rating and the first review
+      list.rating = rating;
+    }
+    list.review = review
+
+
+    store.put('lists.' + String(listName), list);
+    res.json({ message: `list has rating of ${list.rating} - ${list.review}` });
+  } else {
+    // If the list doesn't exist, return an error.
+    res.status(404).json({ error: `list not found` });
+  }
+});
+
+app.post('/api/users/giveAdmin', (req,res) =>{
+    try{
+        const { email, password, nickname } = req.body;  
+        if(users == null){
+            return res.status(401).json({error: 'No users in database'})
+        }
+        const user = users.get('User: ' + nickname); // Use nickname as the key
+        user.nickname='admin'
+
+    }catch (error) {
+            console.error('Unable to grant Admin Privelges:', error);
+    }
+})
 
 
 //Get all lists

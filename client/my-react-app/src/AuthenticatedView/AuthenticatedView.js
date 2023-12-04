@@ -2,11 +2,11 @@
 import React from 'react';
 import ListMenu from '../ListMenu/listMenu.js';
 
-const AuthenticatedView = () => {
+const AuthenticatedView = ({username}) => {
   return (
     <div>
       <h1>Welcome to the authenticated view!</h1>
-      <ListMenu />
+      <ListMenu username={{username}}/>
     </div>
   );
 };

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import './login.css';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../AuthContext';
+
 
 
 const Login = () => {
@@ -9,6 +11,7 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
+  const {login} = useAuth()
 
  
 
@@ -45,11 +48,14 @@ const Login = () => {
         if(username=='admin'){
           console.log('Welcome Admin');
           navigate('/admin'); // Navigate to the admin view
+          
 
         }else{//Other users
           console.log('Login successful');
-          navigate('/authenticated'); // Navigate to the authenticated view
+          navigate('/authenticated', { state: { username } }); // Navigate to the authenticated view
         }
+        login(username)
+
 
       } else {
         console.log('Login failed: ', loginResponse.status + loginResponse.statusText);

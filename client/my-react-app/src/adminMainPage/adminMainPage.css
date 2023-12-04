@@ -161,3 +161,15 @@
 #expandButton{
     width:100%
 }
+
+#addButton{
+    width:100%
+}
+
+#adminButton{
+    display: flex;
+    border: 1px solid;
+    background-color: blue;
+    color: white;
+
+}
