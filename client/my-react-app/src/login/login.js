@@ -5,7 +5,8 @@ import { useAuth } from '../AuthContext';
 
 
 
-const Login = () => {
+
+const Login = ({onLogin}) => {
   // State for input values
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -52,9 +53,12 @@ const Login = () => {
 
         }else{//Other users
           console.log('Login successful');
-          navigate('/authenticated', { state: { username } }); // Navigate to the authenticated view
+          onLogin(username)
+          navigate('/authenticated', {state: { username }}); // Navigate to the authenticated view
+          localStorage.setItem('loggedInUsername', username);
+
+
         }
-        login(username)
 
 
       } else {
@@ -104,6 +108,14 @@ const Login = () => {
       <div className="white-box">
         <h2>Cole's list of heroes</h2>
         <p>After completing the login process, you will be able to perform different organizing functions between the heroes in this database</p>
+        <p>Guidelines: </p>
+          <p>- In The program, use appropriate names for all created objects</p>
+          <p>- Due to a couple useEffect issues, sometimes a page refresh or re-sign in is needed to see completed results</p>
+          <p>- You are responsible for the things you create.</p>
+          <p>- The page does not encourage, vulgur language, inappriate naming, harsh ratings/reviews, inappropriate content,
+            sexist content, racist content etc</p>
+          <p>- Please obey these rules and have fun with the program</p>
+        
 
         {/* Three text inputs */}
         <input
