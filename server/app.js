@@ -252,7 +252,7 @@ app.post('/api/superheroes/custom-Idlists/:listName', (req, res) => {
 
 // Remove superhero IDs from a given custom list
 app.delete('/api/superheroes/removeIDs/:listName', (req, res) => {
-    const listName = req.params.listName;
+    const listName = req.body.listName;
     const list = store.get("lists." + listName);
     const superheroIds = list.elements || [];
     const removalID = req.body.removalID;
