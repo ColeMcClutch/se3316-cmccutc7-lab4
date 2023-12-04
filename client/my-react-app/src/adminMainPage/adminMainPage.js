@@ -241,7 +241,7 @@ const AdminMenu = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          removalID: selectedHeroId,
+          removalID: parseInt(selectedHeroId),
         }),
       });
   
