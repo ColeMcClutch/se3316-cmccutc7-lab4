@@ -3,7 +3,10 @@ import './listMenu.css';
 import { useNavigate } from 'react-router-dom';
 
 const ListMenu = ({ username }) => {
+  console.log('Username prop in ListMenu:', username);
   // State variables
+  const [username1, setUsername] = useState(username)
+  console.log(username1)
   const [searchTerm, setSearchTerm] = useState('');
   const [listName, setListName] = useState('');
   const [listType, setListType] = useState('private');
@@ -27,14 +30,8 @@ const ListMenu = ({ username }) => {
   const [selectedHeroId, setSelectedHeroId] = useState('');
   const [listHeroes, setListHeroes] = useState('');
 
-  // Username state
-  const [stateUsername, setUsername] = useState('');
 
   // Set the username state when the prop changes
-  useEffect(() => {
-    setUsername(username);
-    console.log(username)
-  }, [username]);
   
   const fetchListData = async () => {
     try{
@@ -90,7 +87,7 @@ const ListMenu = ({ username }) => {
   console.log(listType);
   console.log(username);
   try {
-    const response = await fetch(`/api/superheroes/new-lists/${encodeURIComponent(listName)}/${encodeURIComponent(listDescription)}/${encodeURIComponent(listType)}/${encodeURIComponent(username)}`, {
+    const response = await fetch(`/api/superheroes/new-lists/${encodeURIComponent(listName)}/${encodeURIComponent(listDescription)}/${encodeURIComponent(listType)}/${encodeURIComponent(username1)}`, {
       method: 'POST',
     });
     if (response.ok) {
@@ -299,7 +296,7 @@ useEffect(() => {
 
         // Process the lists and update listTitle
         const processedLists = Object.entries(lists).map(([key, list]) => {
-          if (list.status === 'public' || (list.status === 'private' && list.owner === username)) {
+          if (list.status === 'public' || (list.status === 'private' && list.owner === username1)) {
             return (
               <tr key={key}>
                 <td>{list.status + ': ' + list.listName}</td>
@@ -410,7 +407,7 @@ const rateList = async (list) => {
       <input type = "text"
             id = 'usernameUse'
             placeholder = 'Username'
-            value = {username}
+            value = {username1}
             onChange={(e) => setUsername(e.target.value)} // Update password state
             />
 
