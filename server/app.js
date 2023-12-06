@@ -16,7 +16,7 @@ const users = new nodeStorage("users/users.json")
 const express = require('express');
 const app = express();
 
-const port = 80;
+const port = 3000;
 const superheroInfo = require('./superheroes/superhero_info.json')
 const superheroPowers =require('./superheroes/superhero_powers.json')
 
