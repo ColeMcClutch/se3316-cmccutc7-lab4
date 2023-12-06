@@ -17,7 +17,6 @@ const express = require('express');
 const app = express();
 
 const port = 3000;
-app.use(express.static('../client'));
 const superheroInfo = require('./superheroes/superhero_info.json')
 const superheroPowers =require('./superheroes/superhero_powers.json')
 
@@ -29,7 +28,7 @@ app.use(cors()); // Enable CORS for all routes
 
 app.set('trust proxy', true);
 // Setting up front-end code
-app.use('/', express.static('../client'));
+app.use('/', express.static('../client/my-react-app/build'));
 app.use(bodyParser.urlencoded({ extended: true })); // Parse URL-encoded bodies
 
 // Implement rate limiting to prevent abuse
